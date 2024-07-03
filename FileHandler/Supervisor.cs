@@ -14,7 +14,7 @@ namespace FileHandler
         private const string _queuePath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Queue";
         private const string _processingPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processing";
         private const string _binPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Bin";
-        private const string _fileNamePattern = @"\bsurgery-[0-9]{1,11}\b";
+        private const string _folderNamePattern = @"\bsurgery-[0-9]{1,11}\b";
 
         private readonly ILogger<Supervisor> _logger;
 
@@ -52,7 +52,7 @@ namespace FileHandler
                             _logger.LogInformation("Processing file: {file}", file);
                         }
 
-                        ProcessFile(file);
+                        ProcessFileAtQueue(file);
                     }
                 }
                 else
@@ -69,11 +69,17 @@ namespace FileHandler
                 {
                     _logger.LogError("Queue folder does not exist.");
                 }
+
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Creating queue folder: {queuePath}", _queuePath);
             }
 
+                Directory.CreateDirectory(_queuePath);
+        }
         }
 
-        private void ProcessFile(string file)
+        private void ProcessFileAtQueue(string file)
         {
             string extension = Path.GetExtension(file);
             string fileName = Path.GetFileName(file);
@@ -96,7 +102,7 @@ namespace FileHandler
                 return;
             }
 
-            if (!Regex.IsMatch(fileNameWithoutExtension, _fileNamePattern))
+            if (!Regex.IsMatch(fileNameWithoutExtension, _folderNamePattern))
             {
                 if (_logger.IsEnabled(LogLevel.Error))
                 {
@@ -113,7 +119,7 @@ namespace FileHandler
                 return;
             }
 
-            if (!ContentIsValid(file, out ICollection<string> messages))
+            if (!QueueFileIsValid(file, out ICollection<string> messages))
             {
                 foreach (var message in messages)
                 {
@@ -138,11 +144,25 @@ namespace FileHandler
                 _logger.LogInformation("Moving file to processing folder: {file}", file);
             }
 
-            string destination = Path.Combine(_processingPath, Path.GetFileName(file));
-            File.Move(file, destination);
+            string destination = Path.Combine(_processingPath, fileNameWithoutExtension);
+
+            if (File.Exists(destination))
+            {
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Moving file to bin folder: {file}", file);
         }
 
-        private bool ContentIsValid(string file, out ICollection<string> messages)
+                File.Move(file, _binPath);
+            }
+            else
+        {
+                ZipFile.ExtractToDirectory(file, destination);
+                File.Delete(file);
+            }
+        }
+
+        private bool QueueFileIsValid(string file, out ICollection<string> messages)
         {
             messages = new List<string>();
 
