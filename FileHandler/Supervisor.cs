@@ -10,7 +10,9 @@ namespace FileHandler
 {
     internal class Supervisor : BackgroundService
     {
-        private const int _delay = 5000;
+        private int _delay = 5000;
+        private int _consecutiveErrors = 0;
+        private int _exceptionPolicy = 0;
         private const string _queuePath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Queue";
         private const string _processingPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processing";
         private const string _processedPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processed";
@@ -42,42 +44,55 @@ namespace FileHandler
 
         private void MonitorQueueFolder()
         {
-            if (Directory.Exists(_queuePath))
+            try
             {
-                string[] files = Directory.GetFiles(_queuePath);
-                if (files.Length > 0)
+                throw new Exception("Test exception");
+                if (Directory.Exists(_queuePath))
                 {
-                    foreach (var file in files)
+                    string[] files = Directory.GetFiles(_queuePath);
+                    if (files.Length > 0)
                     {
-                        if (_logger.IsEnabled(LogLevel.Information))
+                        foreach (var file in files)
                         {
-                            _logger.LogInformation("Processing file: {file}", file);
-                        }
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Processing file: {file}", file);
+                            }
 
-                        ProcessFileAtQueue(file);
+                            ProcessFileAtQueue(file);
+                        }
+                    }
+                    else
+                    {
+                        if (_logger.IsEnabled(LogLevel.Error))
+                        {
+                            _logger.LogError("No files to process.");
+                        }
                     }
                 }
                 else
                 {
                     if (_logger.IsEnabled(LogLevel.Error))
                     {
-                        _logger.LogError("No files to process.");
+                        _logger.LogError("Queue folder does not exist.");
                     }
+
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("Creating queue folder: {queuePath}", _queuePath);
+                    }
+
+                    Directory.CreateDirectory(_queuePath);
                 }
             }
-            else
+            catch (Exception exception)
             {
                 if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    _logger.LogError("Queue folder does not exist.");
+                    _logger.LogError(exception, "An error occurred while processing the queue folder.");
                 }
 
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation("Creating queue folder: {queuePath}", _queuePath);
-                }
-
-                Directory.CreateDirectory(_queuePath);
+                HandleException();
             }
         }
 
@@ -204,37 +219,52 @@ namespace FileHandler
 
         private void MonitorProcessingFolder()
         {
-            if (Directory.Exists(_processingPath))
+            try
             {
-                string[] entries = Directory.GetFileSystemEntries(_processingPath);
-                if (entries.Length > 0)
+                if (Directory.Exists(_processingPath))
                 {
-                    foreach (var entry in entries)
+                    throw new Exception("Test exception");
+                    string[] entries = Directory.GetFileSystemEntries(_processingPath);
+                    if (entries.Length > 0)
                     {
-                        ProcessEntryAtProcessing(entry);
+                        foreach (var entry in entries)
+                        {
+                            ProcessEntryAtProcessing(entry);
+                        }
+                    }
+                    else
+                    {
+                        if (_logger.IsEnabled(LogLevel.Error))
+                        {
+                            _logger.LogError("No entries to process.");
+                        }
                     }
                 }
                 else
                 {
                     if (_logger.IsEnabled(LogLevel.Error))
                     {
-                        _logger.LogError("No entries to process.");
+                        _logger.LogError("Processing folder does not exist.");
                     }
+
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("Creating processing folder: {processingPath}", _processingPath);
+                    }
+
+                    Directory.CreateDirectory(_processingPath);
                 }
+
+                ResetExceptions();
             }
-            else
+            catch (Exception exception)
             {
                 if (_logger.IsEnabled(LogLevel.Error))
                 {
-                    _logger.LogError("Processing folder does not exist.");
+                    _logger.LogError(exception, "An error occurred while processing the processing folder.");
                 }
 
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation("Creating processing folder: {processingPath}", _processingPath);
-                }
-
-                Directory.CreateDirectory(_processingPath);
+                HandleException();
             }
         }
 
@@ -355,6 +385,57 @@ namespace FileHandler
                     }
                     File.Move(file, Path.Combine(bin, fileName));
                 }
+            }
+        }
+
+        private void ResetExceptions()
+        {
+            _consecutiveErrors = 0;
+            _exceptionPolicy = 0;
+
+            ImplementNewExceptionPolicy();
+        }
+
+        private void HandleException()
+        {
+            _consecutiveErrors++;
+
+            if (_consecutiveErrors >= 3 && _consecutiveErrors < 12)
+            {
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, raising exception policy to 1.");
+                }
+                _exceptionPolicy = 1;
+            }
+            else if (_consecutiveErrors >= 12 && _consecutiveErrors < 48)
+            {
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, raising exception policy to 2.");
+                }
+                _exceptionPolicy = 2;
+            }
+            else if (_consecutiveErrors >= 48)
+            {
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, stopping service.");
+                }
+                _exceptionPolicy = 3;
+            }
+
+            ImplementNewExceptionPolicy();
+        }
+
+        private void ImplementNewExceptionPolicy()
+        {
+            switch (_exceptionPolicy)
+            {
+                case 1: _delay = 600000; break;
+                case 2: _delay = 3600000; break;
+                case 3: Environment.Exit(1); break;
+                default: _delay = 5000; break;
             }
         }
     }
