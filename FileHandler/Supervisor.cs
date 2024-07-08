@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
+using static System.Net.Mime.MediaTypeNames;
+using CustomVisionPredictionService;
+using CustomVisionPredictionService.ViewObjects;
+using Comuns.Classes;
 
 namespace FileHandler
 {
     internal class Supervisor : BackgroundService
     {
+        private int _threshold = 50;
         private int _delay = 5000;
         private int _consecutiveErrors = 0;
         private int _exceptionPolicy = 0;
@@ -19,6 +27,7 @@ namespace FileHandler
         private const string _binPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Bin";
         private const string _folderNamePattern = @"\bsurgery-[0-9]{1,11}\b";
 
+        private readonly ImagePrediction _imagePredictor = new ImagePrediction();
         private readonly ILogger<Supervisor> _logger;
 
         public Supervisor(ILogger<Supervisor> logger)
@@ -46,7 +55,6 @@ namespace FileHandler
         {
             try
             {
-                throw new Exception("Test exception");
                 if (Directory.Exists(_queuePath))
                 {
                     string[] files = Directory.GetFiles(_queuePath);
@@ -223,7 +231,6 @@ namespace FileHandler
             {
                 if (Directory.Exists(_processingPath))
                 {
-                    throw new Exception("Test exception");
                     string[] entries = Directory.GetFileSystemEntries(_processingPath);
                     if (entries.Length > 0)
                     {
@@ -347,14 +354,15 @@ namespace FileHandler
 
             string destination = Path.Combine(_processedPath, folderName);
             Directory.CreateDirectory(destination);
-            File.Create(Path.Combine(destination, "results.json")).Close();
-
-            ProcessFilesAtFolder(entry, destination);
+            using (FileStream resultStream = File.Create(Path.Combine(destination, "results.json")))
+            {
+                ProcessFilesAtFolder(entry, destination, resultStream);
+            }
 
             Directory.Delete(entry, false);
         }
 
-        private void ProcessFilesAtFolder(string entry, string destination)
+        private void ProcessFilesAtFolder(string entry, string destination, FileStream resultStream)
         {
             string folderName = Path.GetFileName(entry);
 
@@ -371,8 +379,12 @@ namespace FileHandler
                 }
                 else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
                 {
-                    // Send image to AI service
-                    // Save results to results.json file
+                    using (FileStream stream = new(file, FileMode.Open, FileAccess.Read))
+                    {
+                        PredictionCustomVisionVO result = _imagePredictor.GetImageResults(stream, _threshold, true).Result;
+                        string json = SerializePredictionResult(result);
+                        resultStream.Write(Encoding.UTF8.GetBytes(json));
+                    }
                     File.Move(file, Path.Combine(destination, fileName));
                     continue;
                 }
@@ -386,6 +398,11 @@ namespace FileHandler
                     File.Move(file, Path.Combine(bin, fileName));
                 }
             }
+        }
+
+        private string SerializePredictionResult(PredictionCustomVisionVO result)
+        {
+            return JsonSerializer.Serialize(result.PredictionDatas);
         }
 
         private void ResetExceptions()
