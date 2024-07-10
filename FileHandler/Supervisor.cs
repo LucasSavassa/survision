@@ -27,6 +27,7 @@ namespace FileHandler
         private const string _processedPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processed";
         private const string _binPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Bin";
         private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
+        private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})";
 
         private readonly ImagePrediction _imagePredictor = new ImagePrediction();
         private readonly ILogger<Supervisor> _logger;
@@ -496,10 +497,144 @@ namespace FileHandler
                 }
                 else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
                 {
+                    uint hours = 0;
+                    uint minutes = 0;
+                    uint seconds = 0;
+
+                    if (!Regex.IsMatch(fileName, _imageFileNamePattern))
+                    {
+                        if (_logger.IsEnabled(LogLevel.Error))
+                        {
+                            _logger.LogError("{filename} is an invalid name for an image file.", fileName);
+                        }
+
+                        if (_logger.IsEnabled(LogLevel.Information))
+                        {
+                            _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                        }
+
+                        File.Move(file, Path.Combine(_binPath, folderName, fileName));
+                        continue;
+                    }
+
+                    Match match = Regex.Match(fileName, _imageFileNamePattern);
+
+                    if (match.Success)
+                    {
+                        string hoursText = match.Groups["hours"].Value;
+                        string minutesText = match.Groups["minutes"].Value;
+                        string secondsText = match.Groups["seconds"].Value;
+
+                        if (!uint.TryParse(hoursText, out hours))
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid hour indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+
+                        if (hours < 0)
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid hour indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+
+                        if (!uint.TryParse(minutesText, out minutes))
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid minute indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+
+                        if (minutes < 0 || minutes > 60)
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid minute indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+
+                        if (!uint.TryParse(secondsText, out seconds))
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid second indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+
+                        if (seconds < 0 || seconds > 60)
+                        {
+                            if (_logger.IsEnabled(LogLevel.Error))
+                            {
+                                _logger.LogError("The image filename does not contain a valid second indicator.");
+                            }
+
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.LogInformation("Moving {filename} to the bin folder.", fileName);
+                            }
+
+                            File.Move(file, Path.Combine(_binPath, folderName, fileName));
+
+                            continue;
+                        }
+                    }
+
+                    uint durationSeconds = hours * 3600 + minutes * 60 + seconds;
+
                     using (FileStream stream = new(file, FileMode.Open, FileAccess.Read))
                     {
                         PredictionCustomVisionVO result = _imagePredictor.GetImageResults(stream, _threshold, true).Result;
                         PictureResult pictureResult = SerializePredictionResult(result);
+                        pictureResult.Second = durationSeconds;
                         surgeryResult.Timeline.Add(pictureResult);
                     }
                     File.Move(file, Path.Combine(destination, fileName));
@@ -507,12 +642,7 @@ namespace FileHandler
                 }
                 else
                 {
-                    string bin = Path.Combine(_binPath, folderName);
-                    if (!Directory.Exists(bin))
-                    {
-                        Directory.CreateDirectory(bin);
-                    }
-                    File.Move(file, Path.Combine(bin, fileName));
+                    File.Move(file, Path.Combine(_binPath, folderName, fileName));
                 }
             }
 
@@ -523,7 +653,7 @@ namespace FileHandler
         private Surgery GetSurgeryDataFromMetadataFile(string file)
         {
             string content = File.ReadAllText(file);
-            return JsonSerializer.Deserialize<Surgery>(content);
+            return JsonSerializer.Deserialize<Surgery>(content) ?? new();
         }
 
         private PictureResult SerializePredictionResult(PredictionCustomVisionVO result)
