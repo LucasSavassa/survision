@@ -12,6 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 using CustomVisionPredictionService;
 using CustomVisionPredictionService.ViewObjects;
 using Comuns.Classes;
+using Comuns.Interfaces;
 
 namespace FileHandler
 {
@@ -25,7 +26,7 @@ namespace FileHandler
         private const string _processingPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processing";
         private const string _processedPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Processed";
         private const string _binPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Bin";
-        private const string _folderNamePattern = @"\bsurgery-[0-9]{1,11}\b";
+        private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
 
         private readonly ImagePrediction _imagePredictor = new ImagePrediction();
         private readonly ILogger<Supervisor> _logger;
@@ -278,8 +279,9 @@ namespace FileHandler
         private void ProcessEntryAtProcessing(string entry)
         {
             string folderName = Path.GetFileName(entry);
+            int surgeryId = -1;
 
-            if(_logger.IsEnabled(LogLevel.Information))
+            if (_logger.IsEnabled(LogLevel.Information))
             {
                 _logger.LogInformation("Processing entry: {entry}", entry);
             }
@@ -301,7 +303,7 @@ namespace FileHandler
                 File.Move(entry, Path.Combine(_binPath, folderName));
                 return;
             }
-            
+
             if (!Regex.IsMatch(folderName, _folderNamePattern))
             {
                 if (_logger.IsEnabled(LogLevel.Error))
@@ -318,6 +320,28 @@ namespace FileHandler
                 return;
             }
 
+            Match match = Regex.Match(folderName, _folderNamePattern);
+            if (match.Success) 
+            {
+                string? id = match.Groups["id"]?.Value;
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("Invalid folder name: {folderName}", folderName);
+                    }
+                    return;
+                }
+                if (!int.TryParse(id, out surgeryId))
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("Invalid id at folder name: {folderName}", folderName);
+                    }
+                    return;
+                }
+            }
+
             string metadataPath = Path.Combine(entry, "metadata.json");
 
             if (!File.Exists(metadataPath))
@@ -325,6 +349,22 @@ namespace FileHandler
                 if (_logger.IsEnabled(LogLevel.Error))
                 {
                     _logger.LogError("metadata.json file not found.");
+                }
+
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Moving entry to bin folder: {entry}.", entry);
+                }
+
+                Directory.Move(entry, Path.Combine(_binPath, folderName));
+                return;
+            }
+
+            if (!IsMetadataValid(metadataPath, surgeryId))
+            {
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError("metadata.json file is not valid");
                 }
 
                 if (_logger.IsEnabled(LogLevel.Information))
@@ -345,7 +385,7 @@ namespace FileHandler
 
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    _logger.LogInformation("Moving entry to bin folder: {entry}", entry);
+                    _logger.LogInformation("Moving entry to bin folder: {entry}.", entry);
                 }
 
                 Directory.Move(entry, Path.Combine(_binPath, folderName));
@@ -362,11 +402,87 @@ namespace FileHandler
             Directory.Delete(entry, false);
         }
 
+        private bool IsMetadataValid(string metadataPath, int surgeryId)
+        {
+            try
+            {
+                string content = File.ReadAllText(metadataPath);
+         
+                Surgery? surgery = JsonSerializer.Deserialize<Surgery>(content);
+
+                if (surgery is null)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("Error deserializing metadata.json.");
+                    }
+                    return false;
+                }
+
+                if (surgery.Id <= 0 || surgery.Id != surgeryId)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("The metadata.json contains a surgery id that is different from the folder id.");
+                    }
+                    return false;
+                }
+
+                if (surgery.Type == Comuns.Enums.SurgeryType.None)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("The metadata.json contains an invalid surgery type.");
+                    }
+                    return false;
+                }
+
+                if (surgery.Shots <= 0)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("The metadata.json contains an invalid quantity of shots.");
+                    }
+                    return false;
+                }
+
+                if (surgery.Seconds <= 0)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("The metadata.json contains an invalid quantity of seconds.");
+                    }
+                    return false;
+                }
+
+                if (surgery.Start == default)
+                {
+                    if (_logger.IsEnabled(LogLevel.Error))
+                    {
+                        _logger.LogError("The metadata.json contains an invalid start date.");
+                    }
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError(exception, "An error occurred while deserializing metadata.json file.");
+                }
+
+                return false;
+            }
+        }
+
         private void ProcessFilesAtFolder(string entry, string destination, FileStream resultStream)
         {
             string folderName = Path.GetFileName(entry);
+            SurgeryResult surgeryResult = new();
 
-            foreach(var file in Directory.GetFiles(entry))
+            foreach (var file in Directory.GetFiles(entry))
             {
                 string fileName = Path.GetFileName(file);
                 string fileExtension = Path.GetExtension(file);
@@ -374,6 +490,7 @@ namespace FileHandler
 
                 if (fileName == "metadata.json")
                 {
+                    surgeryResult.Surgery = GetSurgeryDataFromMetadataFile(file);
                     File.Move(file, Path.Combine(destination, fileName));
                     continue;
                 }
@@ -382,8 +499,8 @@ namespace FileHandler
                     using (FileStream stream = new(file, FileMode.Open, FileAccess.Read))
                     {
                         PredictionCustomVisionVO result = _imagePredictor.GetImageResults(stream, _threshold, true).Result;
-                        string json = SerializePredictionResult(result);
-                        resultStream.Write(Encoding.UTF8.GetBytes(json));
+                        PictureResult pictureResult = SerializePredictionResult(result);
+                        surgeryResult.Timeline.Add(pictureResult);
                     }
                     File.Move(file, Path.Combine(destination, fileName));
                     continue;
@@ -391,18 +508,31 @@ namespace FileHandler
                 else
                 {
                     string bin = Path.Combine(_binPath, folderName);
-                    if(!Directory.Exists(bin))
+                    if (!Directory.Exists(bin))
                     {
                         Directory.CreateDirectory(bin);
                     }
                     File.Move(file, Path.Combine(bin, fileName));
                 }
             }
+
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(surgeryResult);
+            resultStream.Write(bytes, 0, bytes.Length);
         }
 
-        private string SerializePredictionResult(PredictionCustomVisionVO result)
+        private Surgery GetSurgeryDataFromMetadataFile(string file)
         {
-            return JsonSerializer.Serialize(result.PredictionDatas);
+            string content = File.ReadAllText(file);
+            return JsonSerializer.Deserialize<Surgery>(content);
+        }
+
+        private PictureResult SerializePredictionResult(PredictionCustomVisionVO result)
+        {
+            return new()
+            {
+                Second = 0,
+                Detections = result.PredictionDatas.ToList()
+            };
         }
 
         private void ResetExceptions()

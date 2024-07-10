@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Comuns\Comuns.csproj" />
     <ProjectReference Include="..\CustomVisionPredictionService\CustomVisionPredictionService.csproj" />
   </ItemGroup>
 </Project>
