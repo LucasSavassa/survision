@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Comuns.Enums
 {
-    internal enum SurgeryType
+    public enum SurgeryType
     {
         None = 0,
         Heart = 1,
