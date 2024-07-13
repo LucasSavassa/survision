@@ -30,8 +30,10 @@ namespace CustomVisionPredictionService
             {
                 byte[] imageBytes = await GetResizedImageBytes(image, resizeImage);
                 var imageResultString = await SendImageToCustomVisionPrediction(imageBytes);
+
                 RootVO rootObject = JsonConvert.DeserializeObject<RootVO>(imageResultString);
                 return BuildPredictionCustomVisionVO(rootObject, threshold);
+
             }
             catch (Exception ex)
             {
@@ -41,24 +43,26 @@ namespace CustomVisionPredictionService
                     Exception = ex
                 };
             }
-            
+
         }
 
         private async Task<byte[]> GetResizedImageBytes(Stream imageStream, bool resize)
         {
             using (var ms = new MemoryStream())
             {
-                if (!resize || imageStream.Length <= MaxSizeImage)                
-                    await imageStream.CopyToAsync(ms);
-                    
-                while (resize && imageStream.Length > MaxSizeImage)
+                await imageStream.CopyToAsync(ms);
+
+                while (resize && ms.Length > MaxSizeImage)
                 {
-                    using (Image image = Image.Load(imageStream))
+                    ms.Position = 0;
+                    using (Image image = Image.Load(ms))
                     {
                         int newWidth = (int)(image.Width * MinPercertageResize);
                         int newHeight = (int)(image.Height * MinPercertageResize);
 
                         image.Mutate(x => x.Resize(newWidth, newHeight));
+
+                        ms.SetLength(0);
                         await image.SaveAsync(ms, new JpegEncoder());
                     }
                 }
@@ -78,6 +82,9 @@ namespace CustomVisionPredictionService
 
             request.Headers.Add("Prediction-Key", _predictionKey);
             HttpResponseMessage response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
             return await response.Content.ReadAsStringAsync();
         }
 
@@ -85,18 +92,18 @@ namespace CustomVisionPredictionService
         {
             var predictionCustomVisionVO = new PredictionCustomVisionVO
             {
-                IsSuccess = true, 
-                Exception = null, 
+                IsSuccess = true,
+                Exception = null,
                 PredictionDatas = root.Predictions.Where(p => p.Probability > (threshold / 100))
                                                   .Select(p => new PredictionDataCustomVisionVO
-                {
-                    Name = p.TagName,
-                    Probability = p.Probability,
-                    Left = p.BoundingBox.Left,
-                    Top = p.BoundingBox.Top,
-                    Height = p.BoundingBox.Height,
-                    Width = p.BoundingBox.Width
-                }).ToList()
+                                                  {
+                                                      Name = p.TagName,
+                                                      Probability = p.Probability,
+                                                      Left = p.BoundingBox.Left,
+                                                      Top = p.BoundingBox.Top,
+                                                      Height = p.BoundingBox.Height,
+                                                      Width = p.BoundingBox.Width
+                                                  }).ToList()
             };
 
             return predictionCustomVisionVO;
