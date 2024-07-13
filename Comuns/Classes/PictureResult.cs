@@ -14,7 +14,7 @@ namespace Comuns.Classes
         public uint Second { get; set; }
 
         [JsonPropertyName("detections")]
-        public ICollection<PredictionDataCustomVisionVO> Detections { get; set; }
+        public ICollection<PredictionData> Detections { get; set; }
 
         public PictureResult()
         {

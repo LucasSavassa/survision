@@ -95,7 +95,7 @@ namespace CustomVisionPredictionService
                 IsSuccess = true,
                 Exception = null,
                 PredictionDatas = root.Predictions.Where(p => p.Probability > (threshold / 100))
-                                                  .Select(p => new PredictionDataCustomVisionVO
+                                                  .Select(p => new PredictionData
                                                   {
                                                       Name = p.TagName,
                                                       Probability = p.Probability,

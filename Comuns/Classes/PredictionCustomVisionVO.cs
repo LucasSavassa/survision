@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Comuns.Classes
 {
-    public class PredictionCustomVisionVO : IPredictionResult<PredictionDataCustomVisionVO>
+    public class PredictionCustomVisionVO : IPredictionResult
     {
         public bool IsSuccess { get; set; }
         public Exception Exception { get; set; }
-        public List<PredictionDataCustomVisionVO> PredictionDatas { get; set; }
+        public List<PredictionData> PredictionDatas { get; set; }
+       
     }
 }
