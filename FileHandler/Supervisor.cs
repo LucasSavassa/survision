@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
-using static System.Net.Mime.MediaTypeNames;
-using CustomVisionPredictionService;
-using CustomVisionPredictionService.ViewObjects;
+﻿using Comuns.Abstract;
 using Comuns.Classes;
-using Comuns.Interfaces;
+using Comuns.Enums;
+using CustomVisionPredictionService;
+using System.Drawing;
+using System.IO.Compression;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using YoloPredictionService;
 
 namespace FileHandler
 {
@@ -28,13 +22,19 @@ namespace FileHandler
         private const string _binPath = @"C:\Users\lucas\OneDrive\Desktop\Survision\Bin";
         private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
         private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})";
+        private const ImagePredictionServiceType _imageServiceType = ImagePredictionServiceType.Yolo;
 
-        private readonly ImagePrediction _imagePredictor = new ImagePrediction();
+        private ImagePredictionBase _imagePredictor;
         private readonly ILogger<Supervisor> _logger;
 
         public Supervisor(ILogger<Supervisor> logger)
         {
             _logger = logger;
+
+            if (_imageServiceType == ImagePredictionServiceType.CustonVision)
+                _imagePredictor = new ImagePredictionCustonVision();
+            else if(_imageServiceType == ImagePredictionServiceType.Yolo)
+                _imagePredictor = new ImagePredictionYolo();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -630,9 +630,9 @@ namespace FileHandler
 
                     uint durationSeconds = hours * 3600 + minutes * 60 + seconds;
 
-                    using (FileStream stream = new(file, FileMode.Open, FileAccess.Read))
+                    using (Bitmap image = new(file))
                     {
-                        PredictionCustomVisionVO result = _imagePredictor.GetImageResults(stream, _threshold, true).Result;
+                        PredictionResultBase result = _imagePredictor.GetImageResults(image, _threshold, 0.1, true).Result;                                             
                         PictureResult pictureResult = SerializePredictionResult(result);
                         pictureResult.Second = durationSeconds;
                         surgeryResult.Timeline.Add(pictureResult);
@@ -656,7 +656,7 @@ namespace FileHandler
             return JsonSerializer.Deserialize<Surgery>(content) ?? new();
         }
 
-        private PictureResult SerializePredictionResult(PredictionCustomVisionVO result)
+        private PictureResult SerializePredictionResult(PredictionResultBase result)
         {
             return new()
             {

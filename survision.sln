@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomVisionPredictionServi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Comuns", "Comuns\Comuns.csproj", "{038832C5-928C-47ED-BAAF-B5679D8B2555}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoloPredictionService", "YoloPredictionService\YoloPredictionService.csproj", "{4506BD44-5042-494D-AE52-1DAF56684887}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
