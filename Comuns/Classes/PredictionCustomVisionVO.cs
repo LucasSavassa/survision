@@ -1,4 +1,4 @@
-﻿using Comuns.Interfaces;
+﻿using Comuns.Abstract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Comuns.Classes
 {
-    public class PredictionCustomVisionVO : IPredictionResult
+    public class PredictionCustomVisionVO : PredictionResultBase
     {
         public bool IsSuccess { get; set; }
         public Exception Exception { get; set; }
