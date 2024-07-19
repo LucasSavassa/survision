@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Comuns.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Comuns.Classes
         public uint Second { get; set; }
 
         [JsonPropertyName("detections")]
-        public ICollection<PredictionData> Detections { get; set; }
+        public ICollection<Prediction> Detections { get; set; }
 
         public PictureResult()
         {

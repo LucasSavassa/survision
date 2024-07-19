@@ -8,7 +8,7 @@ namespace Comuns.Enums
 {
     public enum ImagePredictionServiceType
     {
-        CustonVision = 0,
+        CustomVision = 0,
         Yolo = 1
     }
 }

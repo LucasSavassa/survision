@@ -1,5 +1,5 @@
-﻿using Comuns.Abstract;
-using Comuns.Classes;
+﻿using Comuns.Classes;
+using Comuns.Interfaces;
 using CustomVisionPredictionService.ViewObjects;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +11,7 @@ using System.Net.Http.Headers;
 
 namespace CustomVisionPredictionService
 {
-    public class ImagePredictionCustonVision : ImagePredictionBase
+    public class ImagePredictionCustomVision : IPredictionService
     {
         private string _endpoint;
         private string _predictionKey;
@@ -19,13 +19,13 @@ namespace CustomVisionPredictionService
         private const double MinPercertageResize = 0.99;
         private static readonly HttpClient client = new HttpClient();
 
-        public ImagePredictionCustonVision()
+        public ImagePredictionCustomVision()
         {
             _endpoint = "https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/78aafb04-a169-41e5-a70b-219d0b8f36e4/detect/iterations/Iteration2/image";
             _predictionKey = "2fa0151d6b8149bfb94dbf01d2bf7b00";
         }
 
-        public override async Task<PredictionResultBase> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false)
+        public async Task<IPredictionResult> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace CustomVisionPredictionService
             {
                 return new PredictionCustomVisionVO()
                 {
-                    IsSuccess = false,
+                    Success = false,
                     Exception = ex
                 };
             }
@@ -87,22 +87,25 @@ namespace CustomVisionPredictionService
             return await response.Content.ReadAsStringAsync();
         }
 
-        private PredictionCustomVisionVO BuildPredictionCustomVisionVO(RootVO root, double threshold)
+        private IPredictionResult BuildPredictionCustomVisionVO(RootVO root, double threshold)
         {
             var predictionCustomVisionVO = new PredictionCustomVisionVO
             {
-                IsSuccess = true,
+                Success = true,
                 Exception = null,
-                PredictionDatas = root.Predictions.Where(p => p.Probability > (threshold / 100))
-                                                  .Select(p => new PredictionData
-                                                  {
-                                                      Name = p.TagName,
-                                                      Probability = p.Probability,
-                                                      Left = p.BoundingBox.Left,
-                                                      Top = p.BoundingBox.Top,
-                                                      Height = p.BoundingBox.Height,
-                                                      Width = p.BoundingBox.Width
-                                                  }).ToList()
+                Predictions = root.Predictions
+                    .Where(p => p.Probability > (threshold / 100))
+                    .Select(p => new Prediction
+                        (                                                  
+                            name: p.TagName,
+                            probability: p.Probability,
+                            left: p.BoundingBox.Left,
+                            top: p.BoundingBox.Top,
+                            height: p.BoundingBox.Height,
+                            width: p.BoundingBox.Width
+                        )
+                    )
+                    .ToList()
             };
 
             return predictionCustomVisionVO;

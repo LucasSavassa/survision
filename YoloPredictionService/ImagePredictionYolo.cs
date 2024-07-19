@@ -5,12 +5,12 @@ using YoloDotNet.Enums;
 using YoloDotNet.Models;
 using YoloDotNet;
 using System.Drawing.Imaging;
-using Comuns.Abstract;
 using YoloDotNet.Extensions;
+using Comuns.Interfaces;
 
 namespace YoloPredictionService
 {
-    public class ImagePredictionYolo : ImagePredictionBase
+    public class ImagePredictionYolo : IPredictionService
     {
         private string _modelPath;
         private YoloOptions _yoloOptions;
@@ -26,55 +26,51 @@ namespace YoloPredictionService
             };
         }
 
-        public override async Task<PredictionResultBase> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false)
+        public async Task<IPredictionResult> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false)
         {
-            return await Task.Run(() =>
-            {               
-                try
+            try
+            {
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        image.Save(ms, ImageFormat.Jpeg);
-                        ms.Seek(0, SeekOrigin.Begin);
+                    image.Save(ms, ImageFormat.Jpeg);
+                    ms.Seek(0, SeekOrigin.Begin);
 
-                        using (SKImage skImage = SKImage.FromEncodedData(ms))
-                        using (var yolo = new Yolo(_yoloOptions))
-                        {
-                            var results = yolo.RunObjectDetection(skImage, threshold/100, 0.1);
-                           
-                            return BuildPredictionYoloVO(results, image.Height, image.Width);
-                          
-                        }
+                    using (SKImage skImage = SKImage.FromEncodedData(ms))
+                    using (var yolo = new Yolo(_yoloOptions))
+                    {
+                        var results = yolo.RunObjectDetection(skImage, threshold / 100, 0.1);
+
+                        return BuildPredictionYoloVO(results, image.Height, image.Width);
+
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                return new PredictionYoloVO()
                 {
-                    return new PredictionYoloVO()
-                    {
-                        IsSuccess = false,
-                        Exception = ex
-                    };
-                }       
-            });
-
+                    Success = false,
+                    Exception = ex
+                };
+            }
         }
 
         private PredictionYoloVO BuildPredictionYoloVO(List<ObjectDetection> output, double imageHeight, double imageWidth)
         {
             var predictionYoloVO = new PredictionYoloVO
             {
-                IsSuccess = true,
+                Success = true,
                 Exception = null,
-                PredictionDatas = output.Select(o => new PredictionData
-                {
-                    Name = o.Label.Name,
-                    Probability = o.Confidence,
-                    Left = o.BoundingBox.Left > 0 ? (o.BoundingBox.Left / imageWidth) : 0,
-                    Top = o.BoundingBox.Top > 0 ? (o.BoundingBox.Top / imageHeight) : 0,
-                    Height = o.BoundingBox.Height / imageHeight,
-                    Width = o.BoundingBox.Width / imageWidth
-
-                }).ToList(),
+                Predictions = output
+                    .Select(o => new Prediction(
+                        name: o.Label.Name,
+                        probability: o.Confidence,
+                        left: o.BoundingBox.Left > 0 ? (o.BoundingBox.Left / imageWidth) : 0,
+                        top: o.BoundingBox.Top > 0 ? (o.BoundingBox.Top / imageHeight) : 0,
+                        height: o.BoundingBox.Height / imageHeight,
+                        width: o.BoundingBox.Width / imageWidth
+                    ))
+                    .ToList(),
             };
 
             return predictionYoloVO;

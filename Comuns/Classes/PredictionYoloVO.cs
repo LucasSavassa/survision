@@ -1,4 +1,4 @@
-﻿using Comuns.Abstract;
+﻿using Comuns.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Comuns.Classes
 {
-    public class PredictionYoloVO : PredictionResultBase
+    public class PredictionYoloVO : IPredictionResult
     {
-        public bool IsSuccess { get; set ; }
-        public Exception Exception { get; set; }
-        public List<PredictionData> PredictionDatas { get; set; }
+        public bool Success { get; set ; }
+        public Exception? Exception { get; set; }
+        public ICollection<Prediction> Predictions { get; set; } = [];
+        public ICollection<string> Messages { get; set; } = [];
     }
 }
