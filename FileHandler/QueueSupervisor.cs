@@ -17,9 +17,6 @@ namespace FileHandler
 {
     internal class QueueSupervisor : Supervisor
     {
-        private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
-        private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})\b";
-
         public QueueSupervisor(ILogger<QueueSupervisor> logger) : base(logger)
         {
 
@@ -77,7 +74,7 @@ namespace FileHandler
         {
             _logger.LogInformation("Processing entry: {entry}", entry);
 
-            IResult result = ValidateQueueEntry(entry);
+            IResult result = ValidateEntry(entry);
 
             if (!result.Success)
             {
@@ -100,7 +97,7 @@ namespace FileHandler
             File.Delete(entry);
         }
 
-        public static IResult ValidateQueueEntry(string entry)
+        override protected IResult ValidateEntry(string entry)
         {
             string extension = Path.GetExtension(entry);
             string entryName = Path.GetFileName(entry);

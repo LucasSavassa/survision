@@ -1,8 +1,10 @@
 ﻿using Comuns.Classes;
 using Comuns.Interfaces;
 using CustomVisionPredictionService;
+using FileHandler.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -14,9 +16,6 @@ namespace FileHandler
 {
     internal class ProcessingSupervisor : Supervisor
     {
-        private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
-        private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})\b";
-
         private readonly IPredictionService _imagePredictionService;
         private int _threshold = 50;
 
@@ -78,20 +77,11 @@ namespace FileHandler
         {
             _logger.LogInformation("Processing entry: {entry}", entry);
 
-            string folderName = Path.GetFileName(entry);
+            IResult result = ValidateEntry(entry);
 
-            FileAttributes attributes = File.GetAttributes(entry);
-
-            if (!attributes.HasFlag(FileAttributes.Directory))
+            if (!result.Success)
             {
-                _logger.LogError("Invalid entry type: {entry}", entry);
-                DiscardEntry(entry);
-                return;
-            }
-
-            if (!Regex.IsMatch(folderName, _folderNamePattern))
-            {
-                _logger.LogError("Invalid folder name: {folderName}", folderName);
+                foreach (var message in result.Messages) _logger.LogError(message);
                 DiscardEntry(entry);
                 return;
             }
@@ -101,13 +91,34 @@ namespace FileHandler
             Directory.Delete(entry, false);
         }
 
+        override protected IResult ValidateEntry(string entry)
+        {
+            ICollection<string> messages = [];
+
+            string entryName = Path.GetFileNameWithoutExtension(entry);
+            string extension = Path.GetExtension(entry);
+
+            if (extension != string.Empty)
+            {
+                messages.Add("Invalid entry type.");
+                return new Result(false, null, messages);
+            }
+
+            if (!Validator.IsValidSurgeryFolderName(entry))
+            {
+                messages.Add("Invalid folder name.");
+                return new Result(false, null, messages);
+            }
+
+            return Result.Successfull;
+        }
+
         private void ProcessFilesAtFolder(string folder)
         {
-            string destination = Path.Combine(_processedPath, folder);
+            string folderName = Path.GetFileName(folder);
+            string destination = Path.Combine(_processedPath, folderName);
             Directory.CreateDirectory(destination);
             using FileStream resultStream = File.Create(Path.Combine(destination, "results.json"));
-
-            string folderName = Path.GetFileName(folder);
             SurgeryResult surgeryResult = new();
 
             foreach (var file in Directory.GetFiles(folder))
@@ -119,13 +130,26 @@ namespace FileHandler
 
                 if (fileName == "metadata.json")
                 {
+                    IResult result = Validator.IsValidMetadataFile(file, folder);
+                    if (!result.Success)
+                    {
+                        DiscardEntry(file, folderName);
+                        continue;
+                    }
                     surgeryResult.Surgery = GetSurgeryDataFromMetadataFile(file);
                     File.Move(file, Path.Combine(destination, fileName));
-                    continue;
                 }
                 else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
                 {
-                    Match match = Regex.Match(fileName, _imageFileNamePattern);
+                    IResult result = Validator.IsValidImageFile(file);
+
+                    if (!result.Success)
+                    {
+                        DiscardEntry(file, folderName);
+                        continue;
+                    }
+
+                    Match match = Validator.MatchImageFileNamePattern(fileNameWithoutExtension);
 
                     string hoursText = match.Groups["hours"].Value;
                     string minutesText = match.Groups["minutes"].Value;
@@ -139,14 +163,13 @@ namespace FileHandler
 
                     using (Bitmap bitmap = new(file))
                     {
-                        IPredictionResult result = _imagePredictionService.GetImageResults(bitmap, _threshold, 0.1, true).Result;
-                        PictureResult pictureResult = new PictureResult() { Second = second, Detections = result.Predictions };
+                        IPredictionResult predictionResult = _imagePredictionService.GetImageResults(bitmap, _threshold, 0.1, true).Result;
+                        PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
                         pictureResult.Second = second;
                         surgeryResult.Timeline.Add(pictureResult);
                     }
 
                     File.Move(file, Path.Combine(destination, fileName));
-                    continue;
                 }
                 else
                 {

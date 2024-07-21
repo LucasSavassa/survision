@@ -17,6 +17,9 @@ namespace FileHandler.Services
         private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
         private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})\b";
 
+        public static Match MatchSurgeryFolderNamePattern(string name) => Regex.Match(name, _folderNamePattern);
+        public static Match MatchImageFileNamePattern(string name) => Regex.Match(name, _imageFileNamePattern);
+
         public static bool IsValidSurgeryFolderName(string name)
         {
             return Regex.IsMatch(name, _folderNamePattern);

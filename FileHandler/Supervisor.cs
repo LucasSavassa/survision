@@ -1,5 +1,6 @@
 ﻿using Comuns.Classes;
 using Comuns.Enums;
+using Comuns.Interfaces;
 using CustomVisionPredictionService;
 using System.Drawing;
 using System.IO.Compression;
@@ -41,6 +42,7 @@ namespace FileHandler
         }
 
         abstract protected void Monitor();
+        abstract protected IResult ValidateEntry(string entry);
 
         protected void DiscardEntry(string entry, string destFolderName = "")
         {
