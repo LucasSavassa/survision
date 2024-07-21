@@ -130,5 +130,58 @@ namespace FileHandler.Services
 
             return Result.Successfull;
         }
+
+        public static IResult IsValidImageFile(string path)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(path);
+
+            if (!IsValidImageFileName(fileName))
+            {
+                return new Result(false, null, ["Invalid image filename."]);
+            }
+
+            Match match = Regex.Match(fileName, _imageFileNamePattern);
+
+            if (!match.Success)
+            {
+                return new Result(false, null, ["Invalid image filename."]);
+            }
+
+            string hoursText = match.Groups["hours"].Value;
+            string minutesText = match.Groups["minutes"].Value;
+            string secondsText = match.Groups["seconds"].Value;
+
+            if (!uint.TryParse(hoursText, out uint hours))
+            {
+                return new Result(false, null, ["The image filename does not contain a valid hour indicator."]);
+            }
+
+            if (hours < 0)
+            {
+                return new Result(false, null, ["The image filename does not contain a valid hour indicator."]);
+            }
+
+            if (!uint.TryParse(minutesText, out uint minutes))
+            {
+                return new Result(false, null, ["The image filename does not contain a valid minute indicator."]);
+            }
+
+            if (minutes < 0 || minutes > 60)
+            {
+                return new Result(false, null, ["The image filename does not contain a valid minute indicator."]);
+            }
+
+            if (!uint.TryParse(secondsText, out uint seconds))
+            {
+                return new Result(false, null, ["The image filename does not contain a valid second indicator."]);
+            }
+
+            if (seconds < 0 || seconds > 60)
+            {
+                return new Result(false, null, ["The image filename does not contain a valid second indicator."]);
+            }
+
+            return Result.Successfull;
+        }
     }
 }
