@@ -2,6 +2,7 @@
 using Comuns.Enums;
 using Comuns.Interfaces;
 using Comuns.Extension;
+using FileHandler.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace FileHandler
             {
                 if (!FoldersExists())
                 {
-                    _logger.LogError("Queue folder does not exist.");
+                    _logger.LogError("There are missing folders.");
                     CreateFolders();
                     return;
                 }
@@ -107,46 +108,23 @@ namespace FileHandler
 
             if (extension != ".zip")
             {
-                return new Result()
-                {
-                    Success = false,
-                    Messages = ["Invalid file extension."]
-                };
+                return new Result(false, null, ["Invalid file extension."]);
             }
 
-            if (!Regex.IsMatch(entryNameWithoutExtension, _folderNamePattern))
+            if (!Validator.IsValidSurgeryFolderName(entryNameWithoutExtension))
             {
-                return new Result()
-                {
-                    Success = false,
-                    Messages = ["Invalid entry name."]
-                };
+                return new Result(false, null, ["Invalid entry name."]);
             }
 
-            string idText = Regex.Match(entryNameWithoutExtension, _folderNamePattern).Groups["id"].Value;
-
-            if (!int.TryParse(idText, out int id))
+            if (!HasValidContent(entry, out ICollection<string> messages))
             {
-                return new Result()
-                {
-                    Success = false,
-                    Messages = ["Invalid entry name."]
-                };
-            }
-
-            if (!HasOneMetadataAndImage(entry, out ICollection<string> messages))
-            {
-                return new Result()
-                {
-                    Success = false,
-                    Messages = messages
-                };
+                return new Result(false, null, messages);
             }
 
             return Result.Successfull;
         }
 
-        private static bool HasOneMetadataAndImage(string zip, out ICollection<string> messages)
+        private static bool HasValidContent(string zip, out ICollection<string> messages)
         {
             messages = [];
 
@@ -160,7 +138,8 @@ namespace FileHandler
                 {
                     if (entry.FullName == "metadata.json")
                     {
-                        if (IsValidMetadata(entry, zip, messages))
+                        IResult result = Validator.IsValidMetadataFile(entry, zip);
+                        if (result.Success)
                         {
                             metadataCount++;
                         }
@@ -168,7 +147,7 @@ namespace FileHandler
                     }
                     else if (entry.FullName.EndsWith(".jpg") || entry.FullName.EndsWith(".jpeg") || entry.FullName.EndsWith(".png"))
                     {
-                        if (IsValidImage(entry))
+                        if (Validator.IsValidImageFileName(entry.Name))
                         {
                             hasImage = true;
                         }
@@ -186,7 +165,7 @@ namespace FileHandler
             {
                 messages.Add("metadata.json file not found.");
             }
-            else if (metadataCount >= 2)
+            else if (metadataCount > 1)
             {
                 messages.Add("More than one metadata.json file found.");
             }
@@ -201,83 +180,6 @@ namespace FileHandler
             }
 
             return hasOneAndOnlyOneMetadata && hasImage;
-        }
-
-        private static bool IsValidMetadata(ZipArchiveEntry metadata, string zip, ICollection<string> messages)
-        {
-            string zipName = Path.GetFileNameWithoutExtension(zip);
-            string idText = Regex.Match(zipName, _folderNamePattern).Groups["id"].Value;
-
-            if (!int.TryParse(idText, out int surgeryId))
-            {
-                messages.Add($"Invalid zip name: {zipName}");
-                return false;
-            }
-
-            using Stream file = metadata.Open();
-            using StreamReader reader = new(file);
-            string json = reader.ReadToEnd();
-
-            Surgery? surgery;
-
-            try
-            {
-                surgery = JsonSerializer.Deserialize<Surgery>(json);
-            }
-            catch (JsonException exception)
-            {
-                messages.Add($"Exception deserializing metadata.json: {exception.Message}");
-                return false;
-            }
-
-            if (surgery is null)
-            {
-                messages.Add("Error deserializing metadata.json.");
-                return false;
-            }
-
-            if (surgery.Id <= 0 || surgery.Id != surgeryId)
-            {
-                messages.Add("The metadata.json contains a surgery id that is different from the folder id.");
-                return false;
-            }
-
-            if (surgery.Type == Comuns.Enums.SurgeryType.None)
-            {
-                messages.Add("The metadata.json contains an invalid surgery type.");
-                return false;
-            }
-
-            if (!surgery.Type.IsDefined())
-            {
-                messages.Add("The metadata.json contains an invalid surgery type."); 
-                return false;
-            }
-
-            if (surgery.Shots <= 0)
-            {
-                messages.Add("The metadata.json contains an invalid quantity of shots.");
-                return false;
-            }
-
-            if (surgery.Seconds <= 0)
-            {
-                messages.Add("The metadata.json contains an invalid quantity of seconds.");
-                return false;
-            }
-
-            if (surgery.Start == default)
-            {
-                messages.Add("The metadata.json contains an invalid start date.");
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool IsValidImage(ZipArchiveEntry entry)
-        {
-            return Regex.IsMatch(entry.FullName, _imageFileNamePattern);
         }
     }
 }

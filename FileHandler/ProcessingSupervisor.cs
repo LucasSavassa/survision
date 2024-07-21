@@ -29,13 +29,15 @@ namespace FileHandler
         {
             try
             {
-                if (!Directory.Exists(_processingPath))
+                if (!FoldersExists())
                 {
-                    _logger.LogError("Processing folder does not exist.");
-                    Directory.CreateDirectory(_processingPath);
+                    _logger.LogError("There are missing folders.");
+                    CreateFolders();
                     return;
                 }
+
                 string[] entries = Directory.GetFileSystemEntries(_processingPath);
+                
                 if (entries.Length == 0)
                 {
                     _logger.LogError("No entry to process.");
@@ -56,6 +58,22 @@ namespace FileHandler
                 HandleException();
             }
         }
+
+        private bool FoldersExists()
+        {
+            return Directory.Exists(_processingPath)
+                && Directory.Exists(_binPath)
+                && Directory.Exists(_processedPath);
+        }
+
+        private void CreateFolders()
+        {
+            _logger.LogInformation("Creating folders.");
+            Directory.CreateDirectory(_processingPath);
+            Directory.CreateDirectory(_binPath);
+            Directory.CreateDirectory(_processedPath);
+        }
+
         private void ProcessEntry(string entry)
         {
             _logger.LogInformation("Processing entry: {entry}", entry);
@@ -78,16 +96,17 @@ namespace FileHandler
                 return;
             }
 
-            string destination = Path.Combine(_processedPath, folderName);
-            Directory.CreateDirectory(destination);
-            using FileStream resultStream = File.Create(Path.Combine(destination, "results.json"));
-            ProcessFilesAtFolder(entry, destination, resultStream);
+            ProcessFilesAtFolder(entry);
 
             Directory.Delete(entry, false);
         }
 
-        private void ProcessFilesAtFolder(string folder, string destination, FileStream resultStream)
+        private void ProcessFilesAtFolder(string folder)
         {
+            string destination = Path.Combine(_processedPath, folder);
+            Directory.CreateDirectory(destination);
+            using FileStream resultStream = File.Create(Path.Combine(destination, "results.json"));
+
             string folderName = Path.GetFileName(folder);
             SurgeryResult surgeryResult = new();
 
@@ -106,74 +125,22 @@ namespace FileHandler
                 }
                 else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
                 {
-                    uint hours = 0;
-                    uint minutes = 0;
-                    uint seconds = 0;
-
-                    if (!Regex.IsMatch(fileName, _imageFileNamePattern))
-                    {
-                        _logger.LogError("{filename} is an invalid name for an image file.", fileName);
-                        DiscardEntry(file, folderName);
-                        continue;
-                    }
-
                     Match match = Regex.Match(fileName, _imageFileNamePattern);
 
-                    if (match.Success)
-                    {
-                        string hoursText = match.Groups["hours"].Value;
-                        string minutesText = match.Groups["minutes"].Value;
-                        string secondsText = match.Groups["seconds"].Value;
+                    string hoursText = match.Groups["hours"].Value;
+                    string minutesText = match.Groups["minutes"].Value;
+                    string secondsText = match.Groups["seconds"].Value;
 
-                        if (!uint.TryParse(hoursText, out hours))
-                        {
-                            _logger.LogError("The image filename does not contain a valid hour indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-
-                        if (hours < 0)
-                        {
-                            _logger.LogError("The image filename does not contain a valid hour indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-
-                        if (!uint.TryParse(minutesText, out minutes))
-                        {
-                            _logger.LogError("The image filename does not contain a valid minute indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-
-                        if (minutes < 0 || minutes > 60)
-                        {
-                            _logger.LogError("The image filename does not contain a valid minute indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-
-                        if (!uint.TryParse(secondsText, out seconds))
-                        {
-                            _logger.LogError("The image filename does not contain a valid second indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-
-                        if (seconds < 0 || seconds > 60)
-                        {
-                            _logger.LogError("The image filename does not contain a valid second indicator.");
-                            DiscardEntry(file, folderName);
-                            continue;
-                        }
-                    }
+                    uint hours = uint.Parse(hoursText);
+                    uint minutes = uint.Parse(minutesText);
+                    uint seconds = uint.Parse(secondsText);
 
                     uint second = hours * 3600 + minutes * 60 + seconds;
 
                     using (Bitmap bitmap = new(file))
                     {
-                        IPredictionResult result = _imagePredictionService.GetImageResults(bitmap, _threshold, 0.1, false).Result;
-                        PictureResult pictureResult = SerializePredictionResult(second, result);
+                        IPredictionResult result = _imagePredictionService.GetImageResults(bitmap, _threshold, 0.1, true).Result;
+                        PictureResult pictureResult = new PictureResult() { Second = second, Detections = result.Predictions };
                         pictureResult.Second = second;
                         surgeryResult.Timeline.Add(pictureResult);
                     }
@@ -183,11 +150,7 @@ namespace FileHandler
                 }
                 else
                 {
-                    if (!Directory.Exists(bin))
-                    {
-                        Directory.CreateDirectory(bin);
-                    }
-                    File.Move(file, Path.Combine(bin, fileName));
+                    DiscardEntry(file, folderName);
                 }
             }
 
@@ -199,15 +162,6 @@ namespace FileHandler
         {
             string content = File.ReadAllText(file);
             return JsonSerializer.Deserialize<Surgery>(content) ?? new();
-        }
-
-        private PictureResult SerializePredictionResult(uint second, IPredictionResult result)
-        {
-            return new()
-            {
-                Second = second,
-                Detections = result.Predictions
-            };
         }
     }
 }
