@@ -169,7 +169,7 @@ namespace FileHandler.Services
                 return new Result(false, null, ["The image filename does not contain a valid minute indicator."]);
             }
 
-            if (minutes < 0 || minutes > 60)
+            if (minutes < 0 || minutes > 59)
             {
                 return new Result(false, null, ["The image filename does not contain a valid minute indicator."]);
             }
@@ -179,7 +179,7 @@ namespace FileHandler.Services
                 return new Result(false, null, ["The image filename does not contain a valid second indicator."]);
             }
 
-            if (seconds < 0 || seconds > 60)
+            if (seconds < 0 || seconds > 59)
             {
                 return new Result(false, null, ["The image filename does not contain a valid second indicator."]);
             }
