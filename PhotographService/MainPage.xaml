@@ -6,9 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="800" Height="600" Loaded="Page_Loaded">
 
     <Grid>
+        <Button x:Name="Capture" Content="Capture" Height="50" Margin="595,540,0,0" VerticalAlignment="Top" Width="195" Click="Button_Click"/>
+        <CaptureElement x:Name="PreviewControl" Margin="10,10,210,10"/>
+        <Image x:Name="CapturedImage" Height="197" Width="197" Margin="593,10,10,393"/>
 
     </Grid>
 </Page>
