@@ -24,6 +24,18 @@ namespace PhotographService
         private bool _isCapturing = false;
         private MediaCaptureInitializationSettings _mediaSettings;
 
+        public int CaptureInterval {
+            get 
+            {
+                return _captureInterval;
+            } 
+            set 
+            {
+                _captureInterval = value;
+                _localSettings.Values["CaptureInterval"] = _captureInterval;
+            }
+        }
+
         public bool IsCapturing => _isCapturing;
 
         public Photographer(ILogger<Photographer> logger) : this()
