@@ -62,9 +62,9 @@ namespace PhotographService
             }
         }
 
-        private void LoadCamera()
+        private async void LoadCamera()
         {
-            DeviceInformationCollection devices = DeviceInformation.FindAllAsync(DeviceClass.VideoCapture).AsTask().Result;
+            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
 
             if (devices.Count == 0) throw new InvalidOperationException("No camera found.");
 
