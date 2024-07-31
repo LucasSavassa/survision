@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -85,10 +86,11 @@ namespace PhotographService
                 }
 
                 _isCapturing = true;
+                Stopwatch stopwatch = Stopwatch.StartNew();
 
                 while (_isCapturing)
                 {
-                    await CapturePhotoAsync(storage);
+                    await CapturePhotoAsync(storage, stopwatch);
                     await Task.Delay(TimeSpan.FromSeconds(_captureInterval), token);
                 }
             }
@@ -104,8 +106,10 @@ namespace PhotographService
             _isCapturing = false;
         }
 
-        public async Task<StorageFile> CapturePhotoAsync(StorageFolder storage)
+        public async Task<StorageFile> CapturePhotoAsync(StorageFolder storage, Stopwatch stopwatch)
         {
+            int elapsed = 0;
+            string name = string.Empty;
             StorageFile photoFile = await CreatePhotoFileAsync(storage);
 
             using (MediaCapture mediaCapture = new MediaCapture())
@@ -114,15 +118,24 @@ namespace PhotographService
                 using (var captureStream = new InMemoryRandomAccessStream())
                 {
                     await mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), captureStream);
+                    elapsed = (int)stopwatch.Elapsed.TotalSeconds;
                     using (var photoStream = await photoFile.OpenAsync(FileAccessMode.ReadWrite))
                     {
                         await CreatePhotoAsync(captureStream, photoStream);
                     }
                 }
             }
-
-            await RenamePhoto(photoFile);
+            name = GetNameFromElapsed(elapsed);
+            await photoFile.RenameAsync(name, NameCollisionOption.FailIfExists);
             return photoFile;
+        }
+
+        private string GetNameFromElapsed(int elapsed)
+        {
+            int hours = elapsed / 3600;
+            int minutes = (elapsed % 3600) / 60;
+            int seconds = elapsed % 60;
+            return $"{hours:D2}-{minutes:D2}-{seconds:D2}.jpg";
         }
 
         private async Task<StorageFile> CreatePhotoFileAsync(StorageFolder storage)
@@ -139,13 +152,6 @@ namespace PhotographService
             var imageProperties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(PhotoOrientation.Normal, PropertyType.UInt16) } };
             await encoder.BitmapProperties.SetPropertiesAsync(imageProperties);
             await encoder.FlushAsync();
-        }
-
-        private static async Task RenamePhoto(StorageFile photoFile)
-        {
-            ImageProperties fileProperties = await photoFile.Properties.GetImagePropertiesAsync();
-            DateTimeOffset dateTaken = fileProperties.DateTaken;
-            await photoFile.RenameAsync($"{dateTaken:HH-mm-ss}.jpg", NameCollisionOption.GenerateUniqueName);
         }
     }
 }
