@@ -22,47 +22,14 @@ namespace FileHandler
 
         }
 
-        protected override void Monitor()
-        {
-            try
-            {
-                if (!FoldersExists())
-                {
-                    _logger.LogError("There are missing folders.");
-                    CreateFolders();
-                    return;
-                }
-
-                string[] entries = Directory.GetFileSystemEntries(QueuePath);
-
-                if (entries.Length == 0)
-                {
-                    _logger.LogError("No entry to process.");
-                    return;
-                }
-
-                foreach (var entry in entries)
-                {
-                    ProcessEntry(entry);
-                }
-
-                ResetExceptions();
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "An error occurred while processing the queue folder.");
-                HandleException();
-            }
-        }
-
-        private bool FoldersExists()
+        protected override bool FoldersExist()
         {
             return Directory.Exists(QueuePath)
                 && Directory.Exists(BinPath)
                 && Directory.Exists(ProcessingPath);
         }
 
-        private void CreateFolders()
+        protected override void CreateFolders()
         {
             _logger.LogInformation("Creating folders.");
             Directory.CreateDirectory(QueuePath);
@@ -70,7 +37,7 @@ namespace FileHandler
             Directory.CreateDirectory(ProcessingPath);
         }
 
-        private void ProcessEntry(string entry)
+        protected override void ProcessEntry(string entry)
         {
             _logger.LogInformation("Processing entry: {entry}", entry);
 

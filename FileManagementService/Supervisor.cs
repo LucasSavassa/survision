@@ -53,7 +53,42 @@ namespace FileHandler
             }
         }
 
-        abstract protected void Monitor();
+        protected void Monitor()
+        {
+            try
+            {
+                if (!FoldersExist())
+                {
+                    _logger.LogError("There are missing folders.");
+                    CreateFolders();
+                    return;
+                }
+
+                string[] entries = Directory.GetFileSystemEntries(ProcessingPath);
+
+                if (entries.Length == 0)
+                {
+                    _logger.LogError("No entry to process.");
+                    return;
+                }
+
+                foreach (var entry in entries)
+                {
+                    ProcessEntry(entry);
+                }
+
+                ResetExceptionPolicy();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "An error occurred while processing the processing folder.");
+
+                HandleException();
+            }
+        }
+        abstract protected bool FoldersExist();
+        abstract protected void CreateFolders();
+        abstract protected void ProcessEntry(string entry);
         abstract protected IResult ValidateEntry(string entry);
 
         protected void DiscardEntry(string entry, string destFolderName = "")
@@ -69,7 +104,7 @@ namespace FileHandler
             Directory.Move(entry, destination);
         }
 
-        protected void ResetExceptions()
+        protected void ResetExceptionPolicy()
         {
             _consecutiveErrors = 0;
             _exceptionPolicy = 0;
@@ -78,34 +113,29 @@ namespace FileHandler
 
         protected void HandleException()
         {
+            IncrementExceptionPolicy();
+            ImplementExceptionPolicy(_exceptionPolicy);
+        }
+
+        private void IncrementExceptionPolicy()
+        {
             _consecutiveErrors++;
 
-            if (_consecutiveErrors >= 3 && _consecutiveErrors < 12)
+            switch (_consecutiveErrors)
             {
-                if (_logger.IsEnabled(LogLevel.Error))
-                {
-                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, the exception policy is now 1.");
-                }
-                _exceptionPolicy = 1;
+                case >= 3 and < 12:
+                    _logger.LogInformation($"The number of consecutive exceptions reached {_consecutiveErrors}, the exception policy is now 1.");
+                    _exceptionPolicy = 1;
+                    break;
+                case >= 12 and < 48:
+                    _logger.LogInformation($"The number of consecutive exceptions reached {_consecutiveErrors}, the exception policy is now 2.");
+                    _exceptionPolicy = 2;
+                    break;
+                case >= 48:
+                    _logger.LogInformation($"The number of consecutive exceptions reached {_consecutiveErrors}, stopping service.");
+                    _exceptionPolicy = 3;
+                    break;
             }
-            else if (_consecutiveErrors >= 12 && _consecutiveErrors < 48)
-            {
-                if (_logger.IsEnabled(LogLevel.Error))
-                {
-                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, the exception policy is now 2.");
-                }
-                _exceptionPolicy = 2;
-            }
-            else if (_consecutiveErrors >= 48)
-            {
-                if (_logger.IsEnabled(LogLevel.Error))
-                {
-                    _logger.LogError($"The number of consecutive exceptions reached {_consecutiveErrors}, stopping service.");
-                }
-                _exceptionPolicy = 3;
-            }
-
-            ImplementExceptionPolicy(_exceptionPolicy);
         }
 
         protected void ImplementExceptionPolicy(int exceptionPolicy)
