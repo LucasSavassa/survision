@@ -35,7 +35,7 @@ namespace FileHandler
                     return;
                 }
 
-                string[] entries = Directory.GetFileSystemEntries(_processingPath);
+                string[] entries = Directory.GetFileSystemEntries(ProcessingPath);
                 
                 if (entries.Length == 0)
                 {
@@ -60,17 +60,17 @@ namespace FileHandler
 
         private bool FoldersExists()
         {
-            return Directory.Exists(_processingPath)
-                && Directory.Exists(_binPath)
-                && Directory.Exists(_processedPath);
+            return Directory.Exists(ProcessingPath)
+                && Directory.Exists(BinPath)
+                && Directory.Exists(ProcessedPath);
         }
 
         private void CreateFolders()
         {
             _logger.LogInformation("Creating folders.");
-            Directory.CreateDirectory(_processingPath);
-            Directory.CreateDirectory(_binPath);
-            Directory.CreateDirectory(_processedPath);
+            Directory.CreateDirectory(ProcessingPath);
+            Directory.CreateDirectory(BinPath);
+            Directory.CreateDirectory(ProcessedPath);
         }
 
         private void ProcessEntry(string entry)
@@ -116,7 +116,7 @@ namespace FileHandler
         private void ProcessFilesAtFolder(string folder)
         {
             string folderName = Path.GetFileName(folder);
-            string destination = Path.Combine(_processedPath, folderName);
+            string destination = Path.Combine(ProcessedPath, folderName);
             Directory.CreateDirectory(destination);
             using FileStream resultStream = File.Create(Path.Combine(destination, "results.json"));
             SurgeryResult surgeryResult = new();
@@ -126,7 +126,7 @@ namespace FileHandler
                 string fileName = Path.GetFileName(file);
                 string fileExtension = Path.GetExtension(file);
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
-                string bin = Path.Combine(_binPath, folderName);
+                string bin = Path.Combine(BinPath, folderName);
 
                 if (fileName == "metadata.json")
                 {

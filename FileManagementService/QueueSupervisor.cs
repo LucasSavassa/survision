@@ -33,7 +33,7 @@ namespace FileHandler
                     return;
                 }
 
-                string[] entries = Directory.GetFileSystemEntries(_queuePath);
+                string[] entries = Directory.GetFileSystemEntries(QueuePath);
 
                 if (entries.Length == 0)
                 {
@@ -57,17 +57,17 @@ namespace FileHandler
 
         private bool FoldersExists()
         {
-            return Directory.Exists(_queuePath)
-                && Directory.Exists(_binPath)
-                && Directory.Exists(_processingPath);
+            return Directory.Exists(QueuePath)
+                && Directory.Exists(BinPath)
+                && Directory.Exists(ProcessingPath);
         }
 
         private void CreateFolders()
         {
             _logger.LogInformation("Creating folders.");
-            Directory.CreateDirectory(_queuePath);
-            Directory.CreateDirectory(_binPath);
-            Directory.CreateDirectory(_processingPath);
+            Directory.CreateDirectory(QueuePath);
+            Directory.CreateDirectory(BinPath);
+            Directory.CreateDirectory(ProcessingPath);
         }
 
         private void ProcessEntry(string entry)
@@ -84,7 +84,7 @@ namespace FileHandler
             }
 
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(entry);
-            string destination = Path.Combine(_processingPath, fileNameWithoutExtension);
+            string destination = Path.Combine(ProcessingPath, fileNameWithoutExtension);
 
             if (File.Exists(destination))
             {

@@ -4,6 +4,7 @@ using Comuns.Interfaces;
 using CustomVisionPredictionService;
 using System.Drawing;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using YoloPredictionService;
@@ -18,15 +19,26 @@ namespace FileHandler
         private int _consecutiveErrors = 0;
         private int _exceptionPolicy = 0;
 
-        protected const string _rootPath = @"C:\Users\lucas\OneDrive\Desktop\Survision";
-        protected readonly string _queuePath = $@"{_rootPath}\Queue";
-        protected readonly string _processingPath = $@"{_rootPath}\Processing";
-        protected readonly string _processedPath = $@"{_rootPath}\Processed";
-        protected readonly string _binPath = $@"{_rootPath}\Bin";
+        private readonly string _rootPath;
+        private readonly string _queuePath;
+        private readonly string _processingPath;
+        private readonly string _processedPath;
+        private readonly string _binPath;
+
+        protected string RootPath => _rootPath;
+        protected string QueuePath => _queuePath;
+        protected string ProcessingPath => _processingPath;
+        protected string ProcessedPath => _processedPath;
+        protected string BinPath => _binPath;
 
         protected Supervisor(ILogger<Supervisor> logger)
         {
             _logger = logger;
+            _rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Survision");
+            _queuePath = Path.Combine(_rootPath, "Queue");
+            _processingPath = Path.Combine(_rootPath, "Processing");
+            _processedPath = Path.Combine(_rootPath, "Processed");
+            _binPath = Path.Combine(_rootPath, "Bin");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -50,7 +62,7 @@ namespace FileHandler
             _logger.LogInformation("Moving {name} to bin", name);
 
             Guid guid = Guid.NewGuid();
-            string newBin = Path.Combine(_binPath, guid.ToString(), destFolderName);
+            string newBin = Path.Combine(BinPath, guid.ToString(), destFolderName);
             Directory.CreateDirectory(newBin);
 
             string destination = Path.Combine(newBin, name);
