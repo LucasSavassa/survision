@@ -73,7 +73,7 @@ namespace PhotographService
             _mediaSettings = new MediaCaptureInitializationSettings { VideoDeviceId = device.Id };
         }
 
-        public async Task StartCaptureAsync(StorageFolder storage, CancellationToken token)
+        public async Task StartCaptureAsync(string storagePath, CancellationToken token)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace PhotographService
 
                 while (_isCapturing)
                 {
-                    await CapturePhotoAsync(storage, stopwatch);
+                    await CapturePhotoAsync(storagePath, stopwatch);
                     await Task.Delay(TimeSpan.FromSeconds(_captureInterval), token);
                 }
             }
@@ -106,11 +106,12 @@ namespace PhotographService
             _isCapturing = false;
         }
 
-        public async Task<StorageFile> CapturePhotoAsync(StorageFolder storage, Stopwatch stopwatch)
+        public async Task<StorageFile> CapturePhotoAsync(string storagePath, Stopwatch stopwatch)
         {
             int elapsed = 0;
             string name = string.Empty;
-            StorageFile photoFile = await CreatePhotoFileAsync(storage);
+            StorageFolder storage = await StorageFolder.GetFolderFromPathAsync(storagePath);
+            StorageFile photoFile = await storage.CreateFileAsync("processing.jpg", CreationCollisionOption.GenerateUniqueName);
 
             using (MediaCapture mediaCapture = new MediaCapture())
             {
@@ -136,13 +137,6 @@ namespace PhotographService
             int minutes = (elapsed % 3600) / 60;
             int seconds = elapsed % 60;
             return $"{hours:D2}-{minutes:D2}-{seconds:D2}.jpg";
-        }
-
-        private async Task<StorageFile> CreatePhotoFileAsync(StorageFolder storage)
-        {
-            StorageFile photoFile = await storage.CreateFileAsync("processing.jpg", CreationCollisionOption.GenerateUniqueName);
-
-            return photoFile;
         }
 
         private static async Task CreatePhotoAsync(InMemoryRandomAccessStream captureStream, IRandomAccessStream photoStream)
