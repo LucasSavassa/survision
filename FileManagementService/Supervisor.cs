@@ -31,6 +31,8 @@ namespace FileHandler
         protected string ProcessedPath => _processedPath;
         protected string BinPath => _binPath;
 
+        abstract protected string MainPath { get; }
+
         protected Supervisor(ILogger<Supervisor> logger)
         {
             _logger = logger;
@@ -40,6 +42,11 @@ namespace FileHandler
             _processedPath = Path.Combine(_rootPath, "Processed");
             _binPath = Path.Combine(_rootPath, "Bin");
         }
+
+        abstract protected bool FoldersExist();
+        abstract protected void CreateFolders();
+        abstract protected void ProcessEntry(string entry);
+        abstract protected IResult ValidateEntry(string entry);
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -64,7 +71,7 @@ namespace FileHandler
                     return;
                 }
 
-                string[] entries = Directory.GetFileSystemEntries(ProcessingPath);
+                string[] entries = Directory.GetFileSystemEntries(MainPath);
 
                 if (entries.Length == 0)
                 {
@@ -86,10 +93,6 @@ namespace FileHandler
                 HandleException();
             }
         }
-        abstract protected bool FoldersExist();
-        abstract protected void CreateFolders();
-        abstract protected void ProcessEntry(string entry);
-        abstract protected IResult ValidateEntry(string entry);
 
         protected void DiscardEntry(string entry, string destFolderName = "")
         {

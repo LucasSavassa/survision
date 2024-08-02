@@ -12,6 +12,8 @@ namespace FileManagementService
 {
     internal class ProcessedSupervisor : Supervisor
     {
+        protected override string MainPath => ProcessedPath;
+
         public ProcessedSupervisor(ILogger<ProcessedSupervisor> logger) : base(logger)
         {
 

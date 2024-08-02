@@ -19,6 +19,8 @@ namespace FileHandler
         private readonly IPredictionService _imagePredictionService;
         private int _threshold = 50;
 
+        protected override string MainPath => ProcessingPath;
+
         public ProcessingSupervisor(ILogger<ProcessingSupervisor> logger) : base(logger)
         {
             _imagePredictionService = new ImagePredictionCustomVision();

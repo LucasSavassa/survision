@@ -17,6 +17,8 @@ namespace FileHandler
 {
     internal class QueueSupervisor : Supervisor
     {
+        protected override string MainPath => QueuePath;
+
         public QueueSupervisor(ILogger<QueueSupervisor> logger) : base(logger)
         {
 
