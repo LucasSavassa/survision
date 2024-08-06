@@ -30,6 +30,7 @@ namespace FileHandler
         protected string ProcessingPath => _processingPath;
         protected string ProcessedPath => _processedPath;
         protected string BinPath => _binPath;
+        protected int Delay { get; set; }
 
         abstract protected string MainPath { get; }
 
@@ -60,7 +61,7 @@ namespace FileHandler
             }
         }
 
-        protected void Monitor()
+        protected virtual void Monitor()
         {
             try
             {

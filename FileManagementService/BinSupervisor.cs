@@ -12,6 +12,7 @@ namespace FileManagementService
     internal class BinSupervisor : Supervisor
     {
         private const int _timeToLive = 604800;
+        private DateTime _oldestFile = DateTime.Now;
 
         protected override string MainPath => BinPath;
 
@@ -30,11 +31,60 @@ namespace FileManagementService
             return Directory.Exists(BinPath);
         }
 
+        protected override void Monitor()
+        {
+            try
+            {
+                if (!FoldersExist())
+                {
+                    _logger.LogError("There are missing folders.");
+                    CreateFolders();
+                    return;
+                }
+
+                string[] entries = Directory.GetFileSystemEntries(MainPath);
+
+                if (entries.Length == 0)
+                {
+                    _logger.LogError("No entry to process.");
+                    return;
+                }
+
+                foreach (var entry in entries)
+                {
+                    ProcessEntry(entry);
+                }
+
+                AdjustDelay();
+
+                ResetExceptionPolicy();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "An error occurred while processing the processing folder.");
+
+                HandleException();
+            }
+        }
+
         protected override void ProcessEntry(string entry)
         {
-            throw new NotImplementedException();
-            // TODO: Scan through files and delete those that are older than _timeToLive
-            // TODO: Plan delay based on the oldest file
+            DateTime createdAt = File.GetCreationTime(entry);
+            DateTime threshold = DateTime.Now.AddSeconds(-_timeToLive);
+
+            if (createdAt < threshold)
+            {
+                _logger.LogInformation($"Deleting file at bin {entry}.");
+                File.Delete(entry);
+            }
+
+            _oldestFile = createdAt < _oldestFile ? createdAt : _oldestFile;
+        }
+
+        private void AdjustDelay()
+        {
+            DateTime threshold = DateTime.Now.AddSeconds(-_timeToLive);
+            Delay = ((_oldestFile - threshold).Seconds) + 3600;
         }
 
         protected override IResult ValidateEntry(string entry)
