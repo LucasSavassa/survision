@@ -11,7 +11,7 @@ namespace FileManagementService
 {
     internal class BinSupervisor : Supervisor
     {
-        private const int _timeToLive = 604800;
+        private const int _secondsToLive = 604800;
         private DateTime _oldestFile = DateTime.Now;
 
         protected override string MainPath => BinPath;
@@ -47,6 +47,7 @@ namespace FileManagementService
                 if (entries.Length == 0)
                 {
                     _logger.LogError("No entry to process.");
+                    Delay = 5000;
                     return;
                 }
 
@@ -70,7 +71,7 @@ namespace FileManagementService
         protected override void ProcessEntry(string entry)
         {
             DateTime createdAt = File.GetCreationTime(entry);
-            DateTime threshold = DateTime.Now.AddSeconds(-_timeToLive);
+            DateTime threshold = DateTime.Now.AddSeconds(-_secondsToLive);
 
             if (createdAt < threshold)
             {
@@ -83,8 +84,8 @@ namespace FileManagementService
 
         private void AdjustDelay()
         {
-            DateTime threshold = DateTime.Now.AddSeconds(-_timeToLive);
-            Delay = ((_oldestFile - threshold).Seconds) + 3600;
+            DateTime threshold = DateTime.Now.AddSeconds(-_secondsToLive);
+            Delay = (((_oldestFile - threshold).Seconds) + 3600) * 1000;
         }
 
         protected override IResult ValidateEntry(string entry)
