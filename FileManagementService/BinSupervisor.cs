@@ -71,15 +71,14 @@ namespace FileManagementService
         protected override void ProcessEntry(string entry)
         {
             DateTime createdAt = File.GetCreationTime(entry);
+            _oldestFile = createdAt < _oldestFile ? createdAt : _oldestFile;
+            
             DateTime threshold = DateTime.Now.AddSeconds(-_secondsToLive);
-
             if (createdAt < threshold)
             {
                 _logger.LogInformation($"Deleting file at bin {entry}.");
                 File.Delete(entry);
             }
-
-            _oldestFile = createdAt < _oldestFile ? createdAt : _oldestFile;
         }
 
         private void AdjustDelay()
