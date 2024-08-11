@@ -1,13 +1,6 @@
 ﻿using Comuns.Classes;
 using Comuns.Enums;
 using Comuns.Interfaces;
-using CustomVisionPredictionService;
-using System.Drawing;
-using System.IO.Compression;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using YoloPredictionService;
 
 namespace FileHandler
 {

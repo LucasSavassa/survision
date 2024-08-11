@@ -1,17 +1,7 @@
 ﻿using Comuns.Classes;
-using Comuns.Enums;
 using Comuns.Interfaces;
-using Comuns.Extension;
 using FileHandler.Services;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FileHandler
 {
