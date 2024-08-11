@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileManagementService", "Fi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotographService", "PhotographService\PhotographService.csproj", "{7867AEBB-05DC-46E4-865B-A63F969468FA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotographService", "PhotographService\PhotographService.csproj", "{31C0EEBB-7A57-4FD2-A714-995598A6742D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotographService_old", "PhotographService_old\PhotographService_old.csproj", "{7867AEBB-05DC-46E4-865B-A63F969468FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

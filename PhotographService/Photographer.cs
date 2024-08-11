@@ -1,104 +1,49 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using System.Drawing;
+using AForge.Video.DirectShow;
+using System.Text.RegularExpressions;
+using System.IO;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Windows.Devices.Enumeration;
-using Windows.Foundation;
-using Windows.Graphics.Imaging;
-using Windows.Media.Capture;
-using Windows.Media.MediaProperties;
-using Windows.Storage;
-using Windows.Storage.FileProperties;
-using Windows.Storage.Streams;
 
 namespace PhotographService
 {
-    public class Photographer
+    public class Photographer : IDisposable
     {
-        private readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
-        private readonly ILogger _logger;
-        private int _captureInterval = 10;
-        private bool _isCapturing = false;
-        private MediaCaptureInitializationSettings _mediaSettings;
+        private VideoCapture _captureDevice;
+        private bool _isCapturing;
 
-        public int CaptureInterval
+
+        public Photographer(string cameraName, int desiredWidth, int desiredHeight)
         {
-            get 
-            {
-                return _captureInterval;
-            } 
-            set 
-            {
-                _captureInterval = value;
-                _localSettings.Values["CaptureInterval"] = _captureInterval;
-            }
+            LoadCamera(cameraName, desiredWidth, desiredHeight);
         }
 
-        public bool IsCapturing => _isCapturing;
-
-        public Photographer(ILogger<Photographer> logger) : this()
+        public bool CapturePhoto(string storagePath)
         {
-            _logger = logger;
-        }
-
-        public Photographer()
-        {
-            LoadSettings();
-            LoadCamera();
-        }
-
-        private void LoadSettings()
-        {
-            if (_localSettings.Values.ContainsKey("CaptureInterval"))
+            using (var frame = new Mat())
             {
-                _captureInterval = (int)_localSettings.Values["CaptureInterval"];
-            }
-            else
-            {
-                _localSettings.Values["CaptureInterval"] = _captureInterval;
-            }
-        }
+                _captureDevice.Read(frame);
 
-        private async void LoadCamera()
-        {
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+                if (frame.IsEmpty)
+                    return false;
 
-            if (devices.Count == 0) throw new InvalidOperationException("No camera found.");
-
-            IEnumerable<DeviceInformation> match = devices.Where(d => d.Name == "HD Pro Webcam C920");
-            DeviceInformation device = match.FirstOrDefault() ?? devices.First();
-            _mediaSettings = new MediaCaptureInitializationSettings { VideoDeviceId = device.Id };
-        }
-
-        public async Task StartCaptureAsync(string storagePath, CancellationToken token)
-        {
-            try
-            {
-                token.ThrowIfCancellationRequested();
-
-                if (_isCapturing)
+                using (Image image = frame.ToBitmap())
                 {
-                    _logger.LogInformation("Already capturing.");
-                    return;
+                    string filePath = Path.Combine(storagePath, "processing.jpg");
+                    image.Save(filePath);
                 }
-
-                _isCapturing = true;
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                while (_isCapturing)
-                {
-                    await CapturePhotoAsync(storagePath, stopwatch);
-                    await Task.Delay(TimeSpan.FromSeconds(_captureInterval), token);
-                }
+                
+                return true;
             }
-            catch (TaskCanceledException)
-            {
-                _logger.LogInformation("Cancellation requested.");
-                return;
-            }
+        }
+
+        public void StartCapture(string storagePath, int interval,int durationSeconds)
+        {
+            _isCapturing = true;
+            Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds));
         }
 
         public void StopCapture()
@@ -106,46 +51,63 @@ namespace PhotographService
             _isCapturing = false;
         }
 
-        public async Task<StorageFile> CapturePhotoAsync(string storagePath, Stopwatch stopwatch)
+        private void CapturePhotos(string storagePath, int interval, int durationSeconds)
         {
-            int elapsed = 0;
-            string name = string.Empty;
-            StorageFolder storage = await StorageFolder.GetFolderFromPathAsync(storagePath);
-            StorageFile photoFile = await storage.CreateFileAsync("processing.jpg", CreationCollisionOption.GenerateUniqueName);
+            Stopwatch stopwatch = new Stopwatch();
+            int elapsedTime = 0;
+            stopwatch.Start();
 
-            using (MediaCapture mediaCapture = new MediaCapture())
+            while(_isCapturing)
             {
-                await mediaCapture.InitializeAsync(_mediaSettings);
-                using (var captureStream = new InMemoryRandomAccessStream())
+                if (CapturePhoto(storagePath))
                 {
-                    await mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), captureStream);
-                    elapsed = (int)stopwatch.Elapsed.TotalSeconds;
-                    using (var photoStream = await photoFile.OpenAsync(FileAccessMode.ReadWrite))
-                    {
-                        await CreatePhotoAsync(captureStream, photoStream);
-                    }
+                    elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
+                    string fileName = Path.Combine(storagePath, "processing.jpg");
+                    string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsedTime));
+                    File.Move(fileName, newFileName);
                 }
+
+                if (elapsedTime > durationSeconds)
+                    break;
+
+                Thread.Sleep(interval * 1000);
             }
-            name = GetNameFromElapsed(elapsed);
-            await photoFile.RenameAsync(name, NameCollisionOption.FailIfExists);
-            return photoFile;
         }
 
-        private string GetNameFromElapsed(int elapsed)
+        private void LoadCamera(string cameraName, int desiredWidth, int desiredHeight)
         {
-            int hours = elapsed / 3600;
-            int minutes = (elapsed % 3600) / 60;
-            int seconds = elapsed % 60;
+            var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            for (int i = 0; i < videoDevices.Count; i++)
+            {
+                if (videoDevices[i].Name == cameraName)
+                {
+                    _captureDevice = new VideoCapture(i);
+                    _captureDevice.Set(CapProp.FrameWidth, desiredWidth);
+                    _captureDevice.Set(CapProp.FrameHeight, desiredHeight);
+                    break;
+                }
+            }
+
+            if (_captureDevice == null)
+                throw new Exception("Web Cam not found");
+
+            if (!_captureDevice.IsOpened)
+                throw new Exception("It's not possible to open the Web Cam");
+        }
+
+        private string GetNameFromElapsed(int elapsedTime)
+        {
+            int hours = elapsedTime / 3600;
+            int minutes = (elapsedTime % 3600) / 60;
+            int seconds = elapsedTime % 60;
             return $"{hours:D2}-{minutes:D2}-{seconds:D2}.jpg";
         }
 
-        private static async Task CreatePhotoAsync(InMemoryRandomAccessStream captureStream, IRandomAccessStream photoStream)
+
+        public void Dispose()
         {
-            var decoder = await BitmapDecoder.CreateAsync(captureStream);
-            var encoder = await BitmapEncoder.CreateForTranscodingAsync(photoStream, decoder);
-            var imageProperties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(PhotoOrientation.Normal, PropertyType.UInt16) } };
-            await encoder.BitmapProperties.SetPropertiesAsync(imageProperties);
-            await encoder.FlushAsync();
+            _captureDevice.Dispose();
         }
     }
 }
