@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace FileHandler
+namespace FileManagementService
 {
     internal class ProcessingSupervisor : Supervisor
     {

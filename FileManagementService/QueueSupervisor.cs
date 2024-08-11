@@ -3,7 +3,7 @@ using Comuns.Interfaces;
 using FileHandler.Services;
 using System.IO.Compression;
 
-namespace FileHandler
+namespace FileManagementService
 {
     internal class QueueSupervisor : Supervisor
     {

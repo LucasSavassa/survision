@@ -2,7 +2,7 @@
 using Comuns.Enums;
 using Comuns.Interfaces;
 
-namespace FileHandler
+namespace FileManagementService
 {
     public abstract class Supervisor : BackgroundService
     {
