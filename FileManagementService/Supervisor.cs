@@ -1,6 +1,4 @@
-﻿using Comuns.Classes;
-using Comuns.Enums;
-using Comuns.Interfaces;
+﻿using Comuns.Interfaces;
 
 namespace FileManagementService
 {
@@ -23,7 +21,11 @@ namespace FileManagementService
         protected string ProcessingPath => _processingPath;
         protected string ProcessedPath => _processedPath;
         protected string BinPath => _binPath;
-        protected int Delay { get; set; }
+        protected int Delay 
+        {
+            get { return _delay; }
+            set { _delay = value; }
+        }
 
         abstract protected string MainPath { get; }
 

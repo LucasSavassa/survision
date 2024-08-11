@@ -24,7 +24,8 @@ namespace PhotographService
         private bool _isCapturing = false;
         private MediaCaptureInitializationSettings _mediaSettings;
 
-        public int CaptureInterval {
+        public int CaptureInterval
+        {
             get 
             {
                 return _captureInterval;

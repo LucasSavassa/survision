@@ -29,6 +29,31 @@ namespace FileManagementService
 
         protected override void ProcessEntry(string entry)
         {
+            _logger.LogInformation("Processing entry: {entry}", entry);
+
+            IResult result = ValidateEntry(entry);
+
+            if (!result.Success)
+            {
+                foreach (var message in result.Messages) _logger.LogError(message);
+                DiscardEntry(entry);
+                return;
+            }
+
+            CompressAndDelete(entry);
+            SendToBlobStorage(entry);
+        }
+
+        private void CompressAndDelete(string entry)
+        {
+            string zipPath = entry + ".zip";
+            ZipFile.CreateFromDirectory(entry, zipPath);            
+            Directory.Delete(entry, true);
+        }
+
+        private void SendToBlobStorage(string entry)
+        {
+            // TODO: Implement blob storage https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet?tabs=visual-studio%2Cmanaged-identity%2Croles-azure-portal%2Csign-in-azure-cli%2Cidentity-visual-studio&pivots=blob-storage-quickstart-scratch
             throw new NotImplementedException();
         }
 
