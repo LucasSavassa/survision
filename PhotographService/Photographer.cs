@@ -12,9 +12,9 @@ namespace PhotographService
 {
     public class Photographer : IDisposable
     {
+        public bool IsCapturing { get; private set; }
         private VideoCapture _captureDevice;
-        private bool _isCapturing;
-
+        
 
         public Photographer(string cameraName, int desiredWidth, int desiredHeight)
         {
@@ -42,13 +42,16 @@ namespace PhotographService
 
         public void StartCapture(string storagePath, int interval,int durationSeconds)
         {
-            _isCapturing = true;
-            Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds));
+            if(!IsCapturing)
+            {
+                IsCapturing = true;
+                Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds));
+            }           
         }
 
         public void StopCapture()
         {
-            _isCapturing = false;
+            IsCapturing = false;
         }
 
         private void CapturePhotos(string storagePath, int interval, int durationSeconds)
@@ -57,18 +60,21 @@ namespace PhotographService
             int elapsedTime = 0;
             stopwatch.Start();
 
-            while(_isCapturing)
+            while(IsCapturing)
             {
-                if (CapturePhoto(storagePath))
+                elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
+                if (elapsedTime > interval)
                 {
-                    elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
+                    IsCapturing = false;
+                    return;
+                }
+
+                if (CapturePhoto(storagePath))
+                {                   
                     string fileName = Path.Combine(storagePath, "processing.jpg");
                     string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsedTime));
                     File.Move(fileName, newFileName);
                 }
-
-                if (elapsedTime > durationSeconds)
-                    break;
 
                 Thread.Sleep(interval * 1000);
             }
