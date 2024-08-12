@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7867AEBB-05DC-46E4-865B-A63F969468FA}</ProjectGuid>
+    <ProjectGuid>{81CE29F0-5D9F-45A2-900C-C19AE3472A48}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PhotographService</RootNamespace>
