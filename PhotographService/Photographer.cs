@@ -3,10 +3,11 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using System.Drawing;
-using AForge.Video.DirectShow;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
+using DirectShowLib;
+using System.Drawing.Imaging;
 
 namespace PhotographService
 {
@@ -16,7 +17,7 @@ namespace PhotographService
         private VideoCapture _captureDevice;
         
 
-        public Photographer(string cameraName, int desiredWidth, int desiredHeight)
+        public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 1280, int desiredHeight = 720)
         {
             LoadCamera(cameraName, desiredWidth, desiredHeight);
         }
@@ -33,7 +34,7 @@ namespace PhotographService
                 using (Image image = frame.ToBitmap())
                 {
                     string filePath = Path.Combine(storagePath, "processing.jpg");
-                    image.Save(filePath);
+                    image.Save(filePath, ImageFormat.Jpeg);
                 }
                 
                 return true;
@@ -63,7 +64,7 @@ namespace PhotographService
             while(IsCapturing)
             {
                 elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
-                if (elapsedTime > interval)
+                if (elapsedTime > durationSeconds)
                 {
                     IsCapturing = false;
                     return;
@@ -82,13 +83,13 @@ namespace PhotographService
 
         private void LoadCamera(string cameraName, int desiredWidth, int desiredHeight)
         {
-            var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            var videoDevices = new List<DsDevice>(DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice));
 
             for (int i = 0; i < videoDevices.Count; i++)
             {
                 if (videoDevices[i].Name == cameraName)
                 {
-                    _captureDevice = new VideoCapture(i);
+                    _captureDevice = new VideoCapture(i, VideoCapture.API.DShow);
                     _captureDevice.Set(CapProp.FrameWidth, desiredWidth);
                     _captureDevice.Set(CapProp.FrameHeight, desiredHeight);
                     break;
