@@ -17,7 +17,7 @@ namespace YoloPredictionService
 
         public ImagePredictionYolo()
         {
-            _modelPath = Path.Combine(Environment.CurrentDirectory, "HelperFiles", "model.onnx");
+            _modelPath = Path.Combine(Environment.CurrentDirectory, "HelperFiles", "YoloModel.onnx");
             _yoloOptions = new YoloOptions()
             {
                 OnnxModel = _modelPath,
@@ -26,7 +26,7 @@ namespace YoloPredictionService
             };
         }
 
-        public async Task<IPredictionResult> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false)
+        public IPredictionResult GetImageResults(Bitmap image, double threshold = 0)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace YoloPredictionService
                     using (SKImage skImage = SKImage.FromEncodedData(ms))
                     using (var yolo = new Yolo(_yoloOptions))
                     {
-                        var results = yolo.RunObjectDetection(skImage, threshold / 100, 0.1);
+                        var results = yolo.RunObjectDetection(skImage, threshold / 100);
 
                         return BuildPredictionYoloVO(results, image.Height, image.Width);
 

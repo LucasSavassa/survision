@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoloPredictionService", "Yo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileManagementService", "FileManagementService\FileManagementService.csproj", "{E1AAC791-76FE-4848-9A17-1AE1C8585F5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotographService", "PhotographService\PhotographService.csproj", "{7867AEBB-05DC-46E4-865B-A63F969468FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotographService", "PhotographService\PhotographService.csproj", "{7867AEBB-05DC-46E4-865B-A63F969468FA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotographService", "PhotographService\PhotographService.csproj", "{31C0EEBB-7A57-4FD2-A714-995598A6742D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotographService_old", "PhotographService_old\PhotographService_old.csproj", "{81CE29F0-5D9F-45A2-900C-C19AE3472A48}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserInterface", "UserInterface\UserInterface.csproj", "{8D000F98-3982-449E-83C8-2D950354B6B0}"
 EndProject

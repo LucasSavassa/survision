@@ -9,6 +9,6 @@ namespace Comuns.Interfaces
 {
     public interface IPredictionService
     {
-        public Task<IPredictionResult> GetImageResults(Bitmap image, double threshold = 0, double iof = 0, bool resizeImage = false);
+        public IPredictionResult GetImageResults(Bitmap image, double threshold = 0);
     }
 }

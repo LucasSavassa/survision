@@ -9,13 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="HelperFiles\model.onnx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="HelperFiles\model.onnx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Remove="HelperFiles\AzureModel.onnx" />
+    <None Remove="HelperFiles\labels.txt" />
+    <None Remove="HelperFiles\YoloModel.onnx" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,5 +22,17 @@
     <ProjectReference Include="..\Comuns\Comuns.csproj" />
     <ProjectReference Include="..\CustomVisionPredictionService\CustomVisionPredictionService.csproj" />
     <ProjectReference Include="..\YoloPredictionService\YoloPredictionService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="HelperFiles\AzureModel.onnx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HelperFiles\labels.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HelperFiles\YoloModel.onnx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
