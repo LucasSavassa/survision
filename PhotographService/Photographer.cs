@@ -15,7 +15,7 @@ namespace PhotographService
     {
         public bool IsCapturing { get; private set; }
         private VideoCapture _captureDevice;
-        
+
 
         public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 1280, int desiredHeight = 720)
         {
@@ -26,6 +26,7 @@ namespace PhotographService
         {
             using (var frame = new Mat())
             {
+                _captureDevice.Retrieve(frame);
                 _captureDevice.Read(frame);
 
                 if (frame.IsEmpty)
@@ -36,18 +37,18 @@ namespace PhotographService
                     string filePath = Path.Combine(storagePath, "processing.jpg");
                     image.Save(filePath, ImageFormat.Jpeg);
                 }
-                
+
                 return true;
             }
         }
 
-        public void StartCapture(string storagePath, int interval,int durationSeconds)
+        public void StartCapture(string storagePath, int interval, int durationSeconds)
         {
-            if(!IsCapturing)
+            if (!IsCapturing)
             {
                 IsCapturing = true;
                 Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds));
-            }           
+            }
         }
 
         public void StopCapture()
@@ -61,7 +62,7 @@ namespace PhotographService
             int elapsedTime = 0;
             stopwatch.Start();
 
-            while(IsCapturing)
+            while (IsCapturing)
             {
                 elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
                 if (elapsedTime > durationSeconds)
@@ -71,7 +72,7 @@ namespace PhotographService
                 }
 
                 if (CapturePhoto(storagePath))
-                {                   
+                {
                     string fileName = Path.Combine(storagePath, "processing.jpg");
                     string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsedTime));
                     File.Move(fileName, newFileName);
@@ -110,7 +111,6 @@ namespace PhotographService
             int seconds = elapsedTime % 60;
             return $"{hours:D2}-{minutes:D2}-{seconds:D2}.jpg";
         }
-
 
         public void Dispose()
         {
