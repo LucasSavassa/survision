@@ -15,6 +15,8 @@ namespace PhotographService
     {
         public bool IsCapturing { get; private set; }
         private VideoCapture _captureDevice;
+        Mat _frame;
+        bool _isDisposing = false;
 
 
         public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 1280, int desiredHeight = 720)
@@ -24,22 +26,16 @@ namespace PhotographService
 
         public bool CapturePhoto(string storagePath)
         {
-            using (var frame = new Mat())
+            if (_frame.IsEmpty)
+                return false;
+
+            using (Image image = _frame.ToBitmap())
             {
-                _captureDevice.Retrieve(frame);
-                _captureDevice.Read(frame);
-
-                if (frame.IsEmpty)
-                    return false;
-
-                using (Image image = frame.ToBitmap())
-                {
-                    string filePath = Path.Combine(storagePath, "processing.jpg");
-                    image.Save(filePath, ImageFormat.Jpeg);
-                }
-
-                return true;
+                string filePath = Path.Combine(storagePath, "processing.jpg");
+                image.Save(filePath, ImageFormat.Jpeg);
             }
+
+            return true;
         }
 
         public void StartCapture(string storagePath, int interval, int durationSeconds)
@@ -102,6 +98,19 @@ namespace PhotographService
 
             if (!_captureDevice.IsOpened)
                 throw new Exception("It's not possible to open the Web Cam");
+
+            _frame = new Mat();
+
+            Task.Run(GetFrames);
+        }
+
+        private void GetFrames()
+        {
+            while(!_isDisposing)
+            {
+                _captureDevice.Read(_frame);
+                Thread.Sleep(100);
+            }
         }
 
         private string GetNameFromElapsed(int elapsedTime)
@@ -114,7 +123,9 @@ namespace PhotographService
 
         public void Dispose()
         {
+            _isDisposing = true;
             _captureDevice.Dispose();
+            _frame.Dispose();          
         }
     }
 }
