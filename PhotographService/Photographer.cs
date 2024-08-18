@@ -19,7 +19,7 @@ namespace PhotographService
         bool _isDisposing = false;
 
 
-        public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 1280, int desiredHeight = 720)
+        public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 960, int desiredHeight = 720)
         {
             LoadCamera(cameraName, desiredWidth, desiredHeight);
         }
