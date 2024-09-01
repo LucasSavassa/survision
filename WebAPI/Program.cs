@@ -10,8 +10,6 @@ namespace WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
             builder.Services.AddDbContext<SurgeryContext>(options => options.UseInMemoryDatabase("Surgeries"));
             builder.Services.AddEndpointsApiExplorer();
@@ -19,7 +17,6 @@ namespace WebAPI
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -27,10 +24,7 @@ namespace WebAPI
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();
