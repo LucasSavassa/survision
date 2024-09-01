@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using WebAPI.Context;
+
 namespace WebAPI
 {
     public class Program
@@ -10,7 +13,7 @@ namespace WebAPI
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddDbContext<SurgeryContext>(options => options.UseInMemoryDatabase("Surgeries"));
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
