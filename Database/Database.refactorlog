@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="ad1fd66b-3207-4593-b0d9-7bd310747884" ChangeDateTime="09/03/2024 23:06:38">
+    <Property Name="ElementName" Value="[dbo].[tbConfiguration].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbConfiguration]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="SGR_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="95b8a20c-103f-4eec-9414-99aa66aa9526" ChangeDateTime="09/03/2024 23:06:50">
+    <Property Name="ElementName" Value="[dbo].[tbConfiguration].[SGR_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbConfiguration]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CFG_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cdb7e836-ee3b-4ab4-bc5e-1c2522e6b422" ChangeDateTime="09/03/2024 23:09:51">
+    <Property Name="ElementName" Value="[dbo].[tbSurgery].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbSurgery]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="SGR_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="54c6adea-8fbe-4265-bb7f-02fc516002e8" ChangeDateTime="09/03/2024 23:15:15">
+    <Property Name="ElementName" Value="[dbo].[tbCriticalMoment].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbCriticalMoment]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CTM_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c9aac7ca-fa89-44ae-8b62-e567a80b996c" ChangeDateTime="09/03/2024 23:19:10">
+    <Property Name="ElementName" Value="[dbo].[tbInstrument].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbInstrument]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ITM_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="e5825b39-1da0-42f6-bc42-16ce06f58575" ChangeDateTime="09/03/2024 23:20:18">
+    <Property Name="ElementName" Value="[dbo].[tbCapture].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbCapture]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CPT_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b43c5a44-a601-421c-a5c2-dfc1a9abac5d" ChangeDateTime="09/03/2024 23:21:43">
+    <Property Name="ElementName" Value="[dbo].[tbDetection].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbDetection]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DTC_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="e8cd91b9-a928-4062-8fea-ac1db786561c" ChangeDateTime="09/03/2024 23:23:35">
+    <Property Name="ElementName" Value="[dbo].[tbDetection].[DTC_Widht]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbDetection]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DTC_Width" />
+  </Operation>
+</Operations>
