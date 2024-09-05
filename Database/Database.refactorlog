@@ -56,4 +56,39 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="DTC_Width" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="2afa6957-8a42-4c12-a963-ca22720364c0" ChangeDateTime="09/05/2024 22:38:31">
+    <Property Name="ElementName" Value="[dbo].[tbCriticalMoment].[CTM_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbCriticalMoment]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CTC_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ed691855-407f-4edb-9562-3180087ee575" ChangeDateTime="09/05/2024 22:38:35">
+    <Property Name="ElementName" Value="[dbo].[tbCriticalMoment].[CTM_EventDateTime]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbCriticalMoment]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CTC_EventDateTime" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0ea6cb86-2af3-4e0e-90d7-64ff81d98e26" ChangeDateTime="09/05/2024 22:38:39">
+    <Property Name="ElementName" Value="[dbo].[tbCriticalMoment].[CTM_EventTime]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbCriticalMoment]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CTC_EventTime" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9a3e0bf9-4367-4820-b454-6a589b5724d0" ChangeDateTime="09/05/2024 22:39:56">
+    <Property Name="ElementName" Value="[dbo].[tbDetection].[CTM_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbDetection]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CTC_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b0495fbc-c2a5-4094-a623-4dec5b1754fd" ChangeDateTime="09/05/2024 22:42:41">
+    <Property Name="ElementName" Value="[dbo].[tbSurgery].[SGR_SugeryRoom]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[tbSurgery]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="SGR_SurgeryRoom" />
+  </Operation>
 </Operations>

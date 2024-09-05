@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataContextManager.EnumsDataBase;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -22,7 +23,22 @@ namespace DataContextManager.Entities
         [Column("SGR_Duration")]
         public int? Duration { get; set; }
 
+        [Column("SGR_PlannedStartTime")]
+        public DateTime? PlannedStartTime { get; set; }
+
+        [Column("SGR_SurgeryRoom")]
+        public string SurgeryRoom { get; set; }
+
+        [Column("SGR_PatientName")]
+        public string PatientName { get; set; }
+
+        [Column("SGR_SurgeryType")]
+        public string SurgeryType { get; set; }
+
+        [Column("SGR_SurgeryStatus")]
+        public SurgeryStatus? SurgeryStatus { get; set; }
+
         [NotMapped]
-        public List<CriticalMomentModel> CriticalMoments { get; set; }
+        public List<CriticalCaptureModel> CriticalMoments { get; set; }
     }
 }

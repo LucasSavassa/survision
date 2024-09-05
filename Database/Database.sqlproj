@@ -61,9 +61,8 @@
   <ItemGroup>
     <Build Include="tables\tbConfiguration.sql" />
     <Build Include="tables\tbSurgery.sql" />
-    <Build Include="tables\tbCriticalMoment.sql" />
+    <Build Include="tables\tbCriticalCapture.sql" />
     <Build Include="tables\tbInstrument.sql" />
-    <Build Include="tables\tbCapture.sql" />
     <Build Include="tables\tbDetection.sql" />
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,0 @@
-﻿CREATE TABLE [dbo].[tbCapture]
-(
-	[CPT_Id] INT NOT NULL PRIMARY KEY IDENTITY, 
-    [CTP_Name] VARCHAR(200) NULL, 
-    [CPT_Path] VARCHAR(200) NULL
-)

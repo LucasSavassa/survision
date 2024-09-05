@@ -13,14 +13,11 @@ namespace DataContextManager.Entities
         [Column("DTC_Id")]
         public int Id { get; set; }
 
-        [Column("CTM_Id")]
-        public int CriticalMomentId { get; set; }
+        [Column("CTC_Id")]
+        public int CriticalCaptureId { get; set; }
 
         [Column("ITM_Id")]
         public int InstrumentId { get; set; }
-
-        [Column("CPT_Id")]
-        public int CaptureId { get; set; }
 
         [Column("DTC_Probability")]
         public double? Probability { get; set; }
@@ -37,13 +34,10 @@ namespace DataContextManager.Entities
         [Column("DTC_Height")]
         public double? Height { get; set; }
 
-        [ForeignKey("CriticalMomentId")]
-        public CriticalMomentModel CriticalMomentModel { get; set; }
+        [ForeignKey("CriticalCaptureId")]
+        public CriticalCaptureModel CriticalCaptureModel { get; set; }
 
         [ForeignKey("InstrumentId")]
         public InstrumentModel InstrumentModel { get; set; }
-
-        [ForeignKey("CaptureId")]
-        public CaptureModel CaptureModel { get; set; }
     }
 }

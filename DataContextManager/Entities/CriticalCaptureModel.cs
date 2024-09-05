@@ -7,20 +7,26 @@ using System.Threading.Tasks;
 
 namespace DataContextManager.Entities
 {
-    [Table("tbCriticalMoment")]
-    public class CriticalMomentModel
+    [Table("tbCriticalCapture")]
+    public class CriticalCaptureModel
     {
-        [Column("CTM_Id")]
+        [Column("CTC_Id")]
         public int Id { get; set; }
 
         [Column("SGR_Id")]
         public int SurgeryId { get; set; }
 
-        [Column("CTM_EventDateTime")]
+        [Column("CTC_EventDateTime")]
         public DateTime? EventDateTime { get; set; }
 
-        [Column("CTM_EventTime")]
+        [Column("CTC_EventTime")]
         public int EventTime { get; set; }
+
+        [Column("CTC_CaptureName")]
+        public string CaptureName { get; set; }
+
+        [Column("CTC_CapturePath")]
+        public string CapturePath { get; set; }
 
         [ForeignKey("SurgeryId")]
         public SurgeryModel SurgeryModel { get; set; }
