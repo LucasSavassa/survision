@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UserInterface.CirurgiasPlanejadasPagina"
+             Title="Iniciar gravação">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Frame Grid.Row="0"
+               Grid.Column="0"
+               BorderColor="Transparent">
+            <VerticalStackLayout Spacing="20">
+                <Label>Sala</Label>
+                <Entry Keyboard="Numeric"></Entry>
+            </VerticalStackLayout>
+        </Frame>
+        <Frame Grid.Row="1"
+               Grid.Column="0"
+               BorderColor="Transparent">
+            <FlexLayout Direction="Column"
+                        JustifyContent="Center"
+                        AlignContent="Center"
+                        AlignItems="Center">
+                <ImageButton Source="start.png"
+                             Aspect="AspectFit"
+                             HeightRequest="100"
+                             WidthRequest="100"></ImageButton>
+                <ImageButton Source="end.png"
+                             Aspect="AspectFit"
+                             HeightRequest="100"
+                             WidthRequest="100"></ImageButton>
+
+            </FlexLayout>
+            
+        </Frame>
+        <Frame Grid.RowSpan="2"
+               Grid.Column="1"
+               BorderColor="Transparent">
+            <Image Source="image.png"
+                   Aspect="AspectFit"></Image>
+        </Frame>
+    </Grid>
+</ContentPage>
