@@ -99,6 +99,10 @@ namespace FileManagementService
                         {
                             metadataCount++;
                         }
+                        else
+                        {
+                            foreach (var message in result.Messages) messages.Add(message);
+                        }
                         continue;
                     }
                     else if (entry.FullName.EndsWith(".jpg") || entry.FullName.EndsWith(".jpeg") || entry.FullName.EndsWith(".png"))

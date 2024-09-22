@@ -10,11 +10,8 @@ namespace Comuns.Classes
 {
     public class Surgery
     {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-
-        [JsonPropertyName("type")]
-        public SurgeryType Type { get; set; }
+        [JsonPropertyName("room")]
+        public int Room { get; set; }
 
         [JsonPropertyName("seconds")]
         public uint Seconds { get; set; }

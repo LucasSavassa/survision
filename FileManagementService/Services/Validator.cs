@@ -1,8 +1,10 @@
 ﻿using Comuns.Classes;
 using Comuns.Extension;
 using Comuns.Interfaces;
+using Google.Protobuf;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
@@ -14,7 +16,7 @@ namespace FileHandler.Services
 {
     internal static class Validator
     {
-        private const string _folderNamePattern = @"\bsurgery-(?<id>[0-9]{1,11})\b";
+        private const string _folderNamePattern = @"\bsurgery-(?<room>[0-9]{1,11})-(?<start>[0-9]{14})\b";
         private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})\b";
 
         public static Match MatchSurgeryFolderNamePattern(string name) => Regex.Match(name, _folderNamePattern);
@@ -22,7 +24,10 @@ namespace FileHandler.Services
 
         public static bool IsValidSurgeryFolderName(string name)
         {
-            return Regex.IsMatch(name, _folderNamePattern);
+            if (!Regex.IsMatch(name, _folderNamePattern)) return false;
+            if (!TryGetSurgeryRoom(name, out int room)) return false;
+            if (!TryGetSurgeryStart(name, out DateTime start)) return false;
+            return true;
         }
 
         public static bool IsValidImageFileName(string fileName)
@@ -34,9 +39,15 @@ namespace FileHandler.Services
         {
             ICollection<string> messages = [];
 
-            if (!TryGetSurgeryId(zipPath, out int surgeryId))
+            if (!TryGetSurgeryRoom(zipPath, out int room))
             {
-                messages.Add($"Invalid surgery folder name");
+                messages.Add($"Invalid room in surgery folder name");
+                return new Result(false, null, messages);
+            }
+
+            if (!TryGetSurgeryStart(zipPath, out DateTime start))
+            {
+                messages.Add($"Invalid start in surgery folder name");
                 return new Result(false, null, messages);
             }
 
@@ -44,38 +55,47 @@ namespace FileHandler.Services
             using StreamReader reader = new(file);
             string json = reader.ReadToEnd();
 
-            return IsValidSurgeryJson(json, surgeryId, messages);
+            return IsValidSurgeryJson(json, room, start, messages);
         }
 
         public static IResult IsValidMetadataFile(string metadata, string folderPath)
         {
             ICollection<string> messages = [];
 
-            if (!TryGetSurgeryId(folderPath, out int surgeryId))
+            if (!TryGetSurgeryRoom(folderPath, out int room))
             {
-                messages.Add($"Invalid surgery folder name");
+                messages.Add($"Invalid room in surgery folder name");
+                return new Result(false, null, messages);
+            }
+
+            if (!TryGetSurgeryStart(folderPath, out DateTime start))
+            {
+                messages.Add($"Invalid start in surgery folder name");
                 return new Result(false, null, messages);
             }
 
             string json = File.ReadAllText(metadata);
 
-            return IsValidSurgeryJson(json, surgeryId, messages);
+            return IsValidSurgeryJson(json, room, start, messages);
         }
 
-        public static bool TryGetSurgeryId(string folderPath, out int surgeryId)
+        public static bool TryGetSurgeryRoom(string folderPath, out int room)
         {
             string folderName = Path.GetFileNameWithoutExtension(folderPath);
-            string idText = Regex.Match(folderName, _folderNamePattern).Groups["id"].Value;
+            string roomText = Regex.Match(folderName, _folderNamePattern).Groups["room"].Value;
 
-            if (!int.TryParse(idText, out surgeryId))
-            {
-                return false;
-            }
-
-            return true;
+            return int.TryParse(roomText, out room);
         }
 
-        private static IResult IsValidSurgeryJson(string json, int surgeryId, ICollection<string> messages)
+        public static bool TryGetSurgeryStart(string folderPath, out DateTime start)
+        {
+            string folderName = Path.GetFileNameWithoutExtension(folderPath);
+            string startText = Regex.Match(folderName, _folderNamePattern).Groups["start"].Value;
+
+            return DateTime.TryParseExact(startText, "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out start);
+        }
+
+        private static IResult IsValidSurgeryJson(string json, int room, DateTime start, ICollection<string> messages)
         {
             Surgery? surgery;
 
@@ -95,21 +115,15 @@ namespace FileHandler.Services
                 return new Result(false, null, messages);
             }
 
-            if (surgery.Id <= 0 || surgery.Id != surgeryId)
+            if (surgery.Room <= 0)
             {
                 messages.Add("The metadata.json contains a surgery id that is different from the folder id.");
                 return new Result(false, null, messages);
             }
 
-            if (surgery.Type == Comuns.Enums.SurgeryType.None)
+            if (surgery.Room != room)
             {
-                messages.Add("The metadata.json contains an invalid surgery type.");
-                return new Result(false, null, messages);
-            }
-
-            if (!surgery.Type.IsDefined())
-            {
-                messages.Add("The metadata.json contains an invalid surgery type.");
+                messages.Add("The metadata.json contains a surgery room that is different from the folder name.");
                 return new Result(false, null, messages);
             }
 
@@ -128,6 +142,12 @@ namespace FileHandler.Services
             if (surgery.Start == default)
             {
                 messages.Add("The metadata.json contains an invalid start date.");
+                return new Result(false, null, messages);
+            }
+
+            if (surgery.Start != start)
+            {
+                messages.Add("The metadata.json contains a start date that is different from the folder name.");
                 return new Result(false, null, messages);
             }
 
