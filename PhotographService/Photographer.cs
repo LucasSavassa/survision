@@ -8,11 +8,14 @@ using System.IO;
 using System.Diagnostics;
 using DirectShowLib;
 using System.Drawing.Imaging;
+using Emgu.CV.Dai;
 
 namespace PhotographService
 {
     public class Photographer : IDisposable
     {
+        public delegate void ShowCapture(Image image);
+
         public bool IsCapturing { get; private set; }
         private VideoCapture _captureDevice;
         Mat _frame;
@@ -24,7 +27,7 @@ namespace PhotographService
             LoadCamera(cameraName, desiredWidth, desiredHeight);
         }
 
-        public bool CapturePhoto(string storagePath)
+        public bool CapturePhoto(string storagePath, ShowCapture func)
         {
             if (_frame.IsEmpty)
                 return false;
@@ -33,17 +36,18 @@ namespace PhotographService
             {
                 string filePath = Path.Combine(storagePath, "processing.jpg");
                 image.Save(filePath, ImageFormat.Jpeg);
+                func(image);
             }
 
             return true;
         }
 
-        public void StartCapture(string storagePath, int interval, int durationSeconds)
+        public void StartCapture(string storagePath, int interval, int durationSeconds, ShowCapture func)
         {
             if (!IsCapturing)
             {
                 IsCapturing = true;
-                Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds));
+                Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds, func));
             }
         }
 
@@ -52,7 +56,7 @@ namespace PhotographService
             IsCapturing = false;
         }
 
-        private void CapturePhotos(string storagePath, int interval, int durationSeconds)
+        private void CapturePhotos(string storagePath, int interval, int durationSeconds, ShowCapture func)
         {
             Stopwatch stopwatch = new Stopwatch();
             int elapsedTime = 0;
@@ -67,7 +71,7 @@ namespace PhotographService
                     return;
                 }
 
-                if (CapturePhoto(storagePath))
+                if (CapturePhoto(storagePath, func))
                 {
                     string fileName = Path.Combine(storagePath, "processing.jpg");
                     string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsedTime));
@@ -78,23 +82,20 @@ namespace PhotographService
             }
         }
 
-        private void LoadCamera(string cameraName, int desiredWidth, int desiredHeight)
+        private void LoadCamera(string name, int width, int height)
         {
-            var videoDevices = new List<DsDevice>(DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice));
+            var devices = new List<DsDevice>(DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice));
 
-            for (int i = 0; i < videoDevices.Count; i++)
-            {
-                if (videoDevices[i].Name == cameraName)
-                {
-                    _captureDevice = new VideoCapture(i, VideoCapture.API.DShow);
-                    _captureDevice.Set(CapProp.FrameWidth, desiredWidth);
-                    _captureDevice.Set(CapProp.FrameHeight, desiredHeight);
-                    break;
-                }
-            }
+            DsDevice? device = devices.FirstOrDefault(x => x.Name == name);
+            device ??= devices.FirstOrDefault();
 
-            if (_captureDevice == null)
+            if (device == null)
                 throw new Exception("Web Cam not found");
+
+            int index = devices.IndexOf(device);
+            _captureDevice = new VideoCapture(index, VideoCapture.API.DShow);
+            _captureDevice.Set(CapProp.FrameWidth, width);
+            _captureDevice.Set(CapProp.FrameHeight, height);
 
             if (!_captureDevice.IsOpened)
                 throw new Exception("It's not possible to open the Web Cam");
@@ -106,7 +107,7 @@ namespace PhotographService
 
         private void GetFrames()
         {
-            while(!_isDisposing)
+            while (!_isDisposing)
             {
                 _captureDevice.Read(_frame);
                 Thread.Sleep(100);
@@ -125,7 +126,7 @@ namespace PhotographService
         {
             _isDisposing = true;
             _captureDevice.Dispose();
-            _frame.Dispose();          
+            _frame.Dispose();
         }
     }
 }

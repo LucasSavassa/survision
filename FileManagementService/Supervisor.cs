@@ -10,17 +10,11 @@ namespace FileManagementService
         private int _consecutiveErrors = 0;
         private int _exceptionPolicy = 0;
 
-        private readonly string _rootPath;
-        private readonly string _queuePath;
-        private readonly string _processingPath;
-        private readonly string _processedPath;
-        private readonly string _binPath;
-
-        protected string RootPath => _rootPath;
-        protected string QueuePath => _queuePath;
-        protected string ProcessingPath => _processingPath;
-        protected string ProcessedPath => _processedPath;
-        protected string BinPath => _binPath;
+        public static string RootPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Survision");
+        public static string QueuePath => Path.Combine(RootPath, "Queue");
+        public static string ProcessingPath => Path.Combine(RootPath, "Processing");
+        public static string ProcessedPath => Path.Combine(RootPath, "Processed");
+        public static string BinPath => Path.Combine(RootPath, "Bin");
         protected int Delay 
         {
             get { return _delay; }
@@ -32,11 +26,6 @@ namespace FileManagementService
         protected Supervisor(ILogger<Supervisor> logger)
         {
             _logger = logger;
-            _rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Survision");
-            _queuePath = Path.Combine(_rootPath, "Queue");
-            _processingPath = Path.Combine(_rootPath, "Processing");
-            _processedPath = Path.Combine(_rootPath, "Processed");
-            _binPath = Path.Combine(_rootPath, "Bin");
         }
 
         abstract protected bool FoldersExist();
