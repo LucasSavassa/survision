@@ -8,6 +8,7 @@ namespace UserInterface
     {
         private uint _room = 0;
         private readonly Photographer _photographer;
+        private string _tempPath;
 
         public ApplicationState State { get; private set; }
 
@@ -50,13 +51,18 @@ namespace UserInterface
         {
             ToggleState(ApplicationState.Recording);
 
-            _photographer.StartCapture(Supervisor.RootPath, 5, 60, ShowImage);
+            int room = (int)numRoom.Value;
+            DateTimeOffset start = DateTimeOffset.Now;
+            _tempPath = Supervisor.CreateTemporaryFolder(room, start);
+
+            _photographer.StartCapture(_tempPath, 5, ShowImage);
         }
 
         private void StopRecording()
         {
             ToggleState(ApplicationState.Stopped);
             _photographer.StopCapture();
+            Supervisor.MoveTemporaryFolder(_tempPath);
         }
 
         private void ToggleState(ApplicationState state)

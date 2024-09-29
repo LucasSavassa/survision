@@ -42,12 +42,12 @@ namespace PhotographService
             return true;
         }
 
-        public void StartCapture(string storagePath, int interval, int durationSeconds, ShowCapture func)
+        public void StartCapture(string storagePath, int interval, ShowCapture func)
         {
             if (!IsCapturing)
             {
                 IsCapturing = true;
-                Task.Run(() => CapturePhotos(storagePath, interval, durationSeconds, func));
+                Task.Run(() => CapturePhotos(storagePath, interval, func));
             }
         }
 
@@ -56,7 +56,7 @@ namespace PhotographService
             IsCapturing = false;
         }
 
-        private void CapturePhotos(string storagePath, int interval, int durationSeconds, ShowCapture func)
+        private void CapturePhotos(string storagePath, int interval, ShowCapture func)
         {
             Stopwatch stopwatch = new Stopwatch();
             int elapsedTime = 0;
@@ -65,11 +65,6 @@ namespace PhotographService
             while (IsCapturing)
             {
                 elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
-                if (elapsedTime > durationSeconds)
-                {
-                    IsCapturing = false;
-                    return;
-                }
 
                 if (CapturePhoto(storagePath, func))
                 {

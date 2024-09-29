@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Comuns\Comuns.csproj" />
     <ProjectReference Include="..\FileManagementService\FileManagementService.csproj" />
     <ProjectReference Include="..\PhotographService\PhotographService.csproj" />
   </ItemGroup>

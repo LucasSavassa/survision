@@ -1,4 +1,6 @@
-﻿using Comuns.Interfaces;
+﻿using Comuns.Classes;
+using Comuns.Interfaces;
+using System.Text.Json;
 
 namespace FileManagementService
 {
@@ -77,6 +79,40 @@ namespace FileManagementService
 
                 HandleException();
             }
+        }
+
+        public static string CreateTemporaryFolder(int room, DateTimeOffset start)
+        {
+            string path = CreateFolder(room, start);
+            CreateMetadata(room, start, path);
+            return path;
+        }
+
+        private static string CreateFolder(int room, DateTimeOffset start)
+        {
+            string path = Path.Combine(RootPath, $"surgery-{room}-{start:yyyyMMddHHmmss}");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
+        private static void CreateMetadata(int room, DateTimeOffset start, string path)
+        {
+            Surgery surgery = new Surgery
+            {
+                Room = room,
+                Start = start.DateTime
+            };
+
+            string json = JsonSerializer.Serialize(surgery);
+            string filePath = Path.Combine(path, "metadata.json");
+            File.WriteAllText(filePath, json);
+        }
+
+        public static void MoveTemporaryFolder(string source)
+        {
+            string folderName = Path.GetFileName(source);
+            string destination = Path.Combine(QueuePath, folderName);
+            Directory.Move(source, destination);
         }
 
         protected void DiscardEntry(string entry, string destFolderName = "")
