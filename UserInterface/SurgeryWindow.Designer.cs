@@ -48,13 +48,13 @@
             dtpDay = new DateTimePicker();
             lblDay = new Label();
             tabOptions = new TabPage();
+            ckbDemo = new CheckBox();
             lblDemo = new Label();
             btnSave = new Button();
             selNeuralNet = new ComboBox();
             lblNeuralNet = new Label();
             numInterval = new NumericUpDown();
             lblInterval = new Label();
-            ckbDemo = new CheckBox();
             tab.SuspendLayout();
             tabRecord.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numRoom).BeginInit();
@@ -288,6 +288,15 @@
             tabOptions.Text = "Opções";
             tabOptions.UseVisualStyleBackColor = true;
             // 
+            // ckbDemo
+            // 
+            ckbDemo.AutoSize = true;
+            ckbDemo.Location = new Point(141, 170);
+            ckbDemo.Name = "ckbDemo";
+            ckbDemo.Size = new Size(18, 17);
+            ckbDemo.TabIndex = 6;
+            ckbDemo.UseVisualStyleBackColor = true;
+            // 
             // lblDemo
             // 
             lblDemo.AutoSize = true;
@@ -305,6 +314,7 @@
             btnSave.TabIndex = 4;
             btnSave.Text = "Salvar";
             btnSave.UseVisualStyleBackColor = true;
+            btnSave.Click += btnSave_Click;
             // 
             // selNeuralNet
             // 
@@ -344,15 +354,6 @@
             lblInterval.TabIndex = 0;
             lblInterval.Text = "Intervalo";
             // 
-            // ckbDemo
-            // 
-            ckbDemo.AutoSize = true;
-            ckbDemo.Location = new Point(141, 170);
-            ckbDemo.Name = "ckbDemo";
-            ckbDemo.Size = new Size(18, 17);
-            ckbDemo.TabIndex = 6;
-            ckbDemo.UseVisualStyleBackColor = true;
-            // 
             // SurgeryWindow
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -362,6 +363,7 @@
             MinimumSize = new Size(800, 500);
             Name = "SurgeryWindow";
             Text = "Form1";
+            Load += SurgeryWindow_Load;
             tab.ResumeLayout(false);
             tabRecord.ResumeLayout(false);
             tabRecord.PerformLayout();

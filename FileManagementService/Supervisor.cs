@@ -1,5 +1,6 @@
 ﻿using Comuns.Classes;
 using Comuns.Interfaces;
+using FileManagementService.Enums;
 using System.Text.Json;
 
 namespace FileManagementService
@@ -17,6 +18,8 @@ namespace FileManagementService
         public static string ProcessingPath => Path.Combine(RootPath, "Processing");
         public static string ProcessedPath => Path.Combine(RootPath, "Processed");
         public static string BinPath => Path.Combine(RootPath, "Bin");
+        public static NeuralNetworkType NeuralNetwork { get; set; } = NeuralNetworkType.Yolo;
+
         protected int Delay 
         {
             get { return _delay; }

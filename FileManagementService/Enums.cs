@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UserInterface.Enums
+namespace FileManagementService.Enums
 {
-    public enum ApplicationState
+    public enum NeuralNetworkType
     {
-        Stopped,
-        Recording
+        Yolo,
+        CustomVision
     }
 }

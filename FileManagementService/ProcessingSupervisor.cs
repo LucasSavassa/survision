@@ -2,23 +2,21 @@
 using Comuns.Interfaces;
 using CustomVisionPredictionService;
 using FileHandler.Services;
+using FileManagementService.Enums;
 using System.Drawing;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using YoloPredictionService;
 
 namespace FileManagementService
 {
     internal class ProcessingSupervisor : Supervisor
     {
-        private readonly IPredictionService _imagePredictionService;
         private int _threshold = 50;
 
         protected override string MainPath => ProcessingPath;
 
-        public ProcessingSupervisor(ILogger<ProcessingSupervisor> logger) : base(logger)
-        {
-            _imagePredictionService = new ImagePredictionCustomVision();
-        }
+        public ProcessingSupervisor(ILogger<ProcessingSupervisor> logger) : base(logger) { }
 
         protected override bool FoldersExist()
         {
@@ -125,7 +123,8 @@ namespace FileManagementService
 
                     using (Bitmap bitmap = new(file))
                     {
-                        IPredictionResult predictionResult = _imagePredictionService.GetImageResults(bitmap, _threshold);
+                        IPredictionService predictionService = GetPredictionService();
+                        IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, _threshold);
                         PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
                         pictureResult.Second = second;
                         surgeryResult.Timeline.Add(pictureResult);
@@ -141,6 +140,18 @@ namespace FileManagementService
 
             byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(surgeryResult);
             resultStream.Write(bytes, 0, bytes.Length);
+        }
+
+        private IPredictionService GetPredictionService()
+        {
+            switch (NeuralNetwork)
+            {
+                case NeuralNetworkType.CustomVision:
+                    return new ImagePredictionCustomVision();
+                case NeuralNetworkType.Yolo:
+                default:
+                    return new ImagePredictionYolo();
+            }
         }
 
         private Surgery GetSurgeryDataFromMetadataFile(string file)

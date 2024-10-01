@@ -1,13 +1,15 @@
 using FileManagementService;
+using FileManagementService.Enums;
 using PhotographService;
-using static UserInterface.Enums;
+using UserInterface.Enums;
+using UserInterface.Properties;
 
 namespace UserInterface
 {
     public partial class SurgeryWindow : Form
     {
         private uint _room = 0;
-        private readonly Photographer _photographer;
+        private Photographer _photographer;
         private string _tempPath;
 
         public ApplicationState State { get; private set; }
@@ -15,7 +17,22 @@ namespace UserInterface
         public SurgeryWindow()
         {
             InitializeComponent();
+        }
+
+        private void SurgeryWindow_Load(object sender, EventArgs e)
+        {
             _photographer = new Photographer();
+            ApplySettings();
+        }
+
+        private void ApplySettings()
+        {
+            numInterval.Value = Settings.Default.Interval;
+
+            selNeuralNet.SelectedIndex = Settings.Default.NeuralNet;
+            Supervisor.NeuralNetwork = (NeuralNetworkType)Settings.Default.NeuralNet;
+
+            ckbDemo.Checked = Settings.Default.IsDemo;
         }
 
         public void btnStart_Click(object sender, EventArgs e)
@@ -53,9 +70,10 @@ namespace UserInterface
 
             int room = (int)numRoom.Value;
             DateTimeOffset start = DateTimeOffset.Now;
+            int interval = (int)numInterval.Value;
             _tempPath = Supervisor.CreateTemporaryFolder(room, start);
 
-            _photographer.StartCapture(_tempPath, 5, ShowImage);
+            _photographer.StartCapture(_tempPath, interval, ShowImage);
         }
 
         private void StopRecording()
@@ -88,6 +106,16 @@ namespace UserInterface
         private void ShowImage(Image image)
         {
             imgCapture.Image = new Bitmap(image);
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            Settings.Default.Interval = (int)numInterval.Value;
+            Settings.Default.NeuralNet = selNeuralNet.SelectedIndex;
+            Settings.Default.IsDemo = ckbDemo.Checked;
+            Settings.Default.Save();
+
+            Supervisor.NeuralNetwork = (NeuralNetworkType)selNeuralNet.SelectedIndex;
         }
     }
 }

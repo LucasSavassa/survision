@@ -14,13 +14,12 @@ namespace PhotographService
 {
     public class Photographer : IDisposable
     {
-        public delegate void ShowCapture(Image image);
-
-        public bool IsCapturing { get; private set; }
         private VideoCapture _captureDevice;
         Mat _frame;
         bool _isDisposing = false;
 
+        public delegate void ShowCapture(Image image);
+        public bool IsCapturing { get; private set; }
 
         public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 960, int desiredHeight = 720)
         {
