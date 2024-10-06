@@ -4,6 +4,7 @@ using CustomVisionPredictionService;
 using FileHandler.Services;
 using FileManagementService.Enums;
 using System.Drawing;
+using System.Drawing.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using YoloPredictionService;
@@ -76,70 +77,91 @@ namespace FileManagementService
         private void ProcessFilesAtFolder(string folder)
         {
             string folderName = Path.GetFileName(folder);
-            string destination = Path.Combine(ProcessedPath, folderName);
-            Directory.CreateDirectory(destination);
-            using FileStream resultStream = File.Create(Path.Combine(destination, "results.json"));
-            SurgeryResult surgeryResult = new();
-
-            foreach (var file in Directory.GetFiles(folder))
+            string tempDestination = Path.Combine(ProcessedPath, $"temp-{folderName}");
+            Directory.CreateDirectory(tempDestination);
+            using (FileStream resultStream = File.Create(Path.Combine(tempDestination, "results.json")))
             {
-                string fileName = Path.GetFileName(file);
-                string fileExtension = Path.GetExtension(file);
-                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
-                string bin = Path.Combine(BinPath, folderName);
+                SurgeryResult surgeryResult = new();
 
-                if (fileName == "metadata.json")
+                foreach (var file in Directory.GetFiles(folder))
                 {
-                    IResult result = Validator.IsValidMetadataFile(file, folder);
-                    if (!result.Success)
+                    string fileName = Path.GetFileName(file);
+                    string fileExtension = Path.GetExtension(file);
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+                    string bin = Path.Combine(BinPath, folderName);
+
+                    if (fileName == "metadata.json")
+                    {
+                        IResult result = Validator.IsValidMetadataFile(file, folder);
+                        if (!result.Success)
+                        {
+                            DiscardEntry(file, folderName);
+                            continue;
+                        }
+                        surgeryResult.Surgery = GetSurgeryDataFromMetadataFile(file);
+                        File.Move(file, Path.Combine(tempDestination, fileName));
+                    }
+                    else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
+                    {
+                        IResult result = Validator.IsValidImageFile(file);
+
+                        if (!result.Success)
+                        {
+                            DiscardEntry(file, folderName);
+                            continue;
+                        }
+
+                        Match match = Validator.MatchImageFileNamePattern(fileNameWithoutExtension);
+
+                        string hoursText = match.Groups["hours"].Value;
+                        string minutesText = match.Groups["minutes"].Value;
+                        string secondsText = match.Groups["seconds"].Value;
+
+                        uint hours = uint.Parse(hoursText);
+                        uint minutes = uint.Parse(minutesText);
+                        uint seconds = uint.Parse(secondsText);
+
+                        uint second = hours * 3600 + minutes * 60 + seconds;
+
+                        using (Bitmap bitmap = new(file))
+                        {
+                            IPredictionService predictionService = GetPredictionService();
+                            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, _threshold);
+                            PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
+                            surgeryResult.Timeline.Add(pictureResult);
+                        }
+
+                        File.Move(file, Path.Combine(tempDestination, fileName));
+                    }
+                    else
                     {
                         DiscardEntry(file, folderName);
-                        continue;
                     }
-                    surgeryResult.Surgery = GetSurgeryDataFromMetadataFile(file);
-                    File.Move(file, Path.Combine(destination, fileName));
                 }
-                else if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png")
+
+                byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(surgeryResult);
+                resultStream.Write(bytes, 0, bytes.Length);
+            }
+            string destination = Path.Combine(ProcessedPath, folderName);
+            RenameTempFolder(tempDestination, destination);
+        }
+
+        private static void RenameTempFolder(string tempDestination, string destination)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                try
                 {
-                    IResult result = Validator.IsValidImageFile(file);
+                    Directory.Move(tempDestination, destination);
 
-                    if (!result.Success)
-                    {
-                        DiscardEntry(file, folderName);
-                        continue;
-                    }
-
-                    Match match = Validator.MatchImageFileNamePattern(fileNameWithoutExtension);
-
-                    string hoursText = match.Groups["hours"].Value;
-                    string minutesText = match.Groups["minutes"].Value;
-                    string secondsText = match.Groups["seconds"].Value;
-
-                    uint hours = uint.Parse(hoursText);
-                    uint minutes = uint.Parse(minutesText);
-                    uint seconds = uint.Parse(secondsText);
-
-                    uint second = hours * 3600 + minutes * 60 + seconds;
-
-                    using (Bitmap bitmap = new(file))
-                    {
-                        IPredictionService predictionService = GetPredictionService();
-                        IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, _threshold);
-                        PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
-                        pictureResult.Second = second;
-                        surgeryResult.Timeline.Add(pictureResult);
-                    }
-
-                    File.Move(file, Path.Combine(destination, fileName));
+                    return;
                 }
-                else
+                catch (UnauthorizedAccessException)
                 {
-                    DiscardEntry(file, folderName);
+                    Thread.Sleep(50);
+                    if (i == 9) throw;
                 }
             }
-
-            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(surgeryResult);
-            resultStream.Write(bytes, 0, bytes.Length);
         }
 
         private IPredictionService GetPredictionService()

@@ -10,10 +10,7 @@ namespace FileManagementService
 
         protected override string MainPath => BinPath;
 
-        public BinSupervisor(ILogger<BinSupervisor> logger) : base(logger)
-        {
-
-        }
+        public BinSupervisor(ILogger<BinSupervisor> logger) : base(logger) { }
 
         protected override void CreateFolders()
         {
@@ -71,7 +68,7 @@ namespace FileManagementService
             if (createdAt < threshold)
             {
                 _logger.LogInformation($"Deleting file at bin {entry}.");
-                File.Delete(entry);
+                Directory.Delete(entry, true);
             }
         }
 

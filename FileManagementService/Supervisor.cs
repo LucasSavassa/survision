@@ -18,6 +18,7 @@ namespace FileManagementService
         public static string QueuePath => Path.Combine(RootPath, "Queue");
         public static string ProcessingPath => Path.Combine(RootPath, "Processing");
         public static string ProcessedPath => Path.Combine(RootPath, "Processed");
+        public static string GalleryPath => Path.Combine(RootPath, "Gallery");
         public static string BinPath => Path.Combine(RootPath, "Bin");
         public static NeuralNetworkType NeuralNetwork { get; set; } = NeuralNetworkType.Yolo;
 
@@ -125,7 +126,8 @@ namespace FileManagementService
         public static string ZipFolder(string path)
         {
             string name = Path.GetFileName(path);
-            string destination = Path.Combine(RootPath, $"{name}.zip");
+            string directory = Path.GetDirectoryName(path) ?? ""; 
+            string destination = Path.Combine(directory, $"{name}.zip");
             ZipFile.CreateFromDirectory(path, destination);
             Directory.Delete(path, true);
             return destination;
@@ -136,6 +138,16 @@ namespace FileManagementService
             string name = Path.GetFileName(path);
             string destination = Path.Combine(QueuePath, name);
             Directory.Move(path, destination);
+        }
+
+        protected void MoveToGallery(string entry, int room, DateTime date)
+        {
+            string zipped = ZipFolder(entry);
+            string name = Path.GetFileName(zipped);
+            string destinationFolder = Path.Combine(GalleryPath, $"{room}", $"{date.Year}", $"{date.Month}", $"{date.Day}");
+            Directory.CreateDirectory(destinationFolder);
+            string destination = Path.Combine(destinationFolder, name);
+            Directory.Move(zipped, destination);
         }
 
         protected void DiscardEntry(string entry, string destFolderName = "")

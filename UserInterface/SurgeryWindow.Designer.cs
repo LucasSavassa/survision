@@ -336,10 +336,8 @@
             // 
             // numInterval
             // 
-            numInterval.Increment = new decimal(new int[] { 5, 0, 0, 0 });
             numInterval.Location = new Point(137, 26);
             numInterval.Maximum = new decimal(new int[] { 30, 0, 0, 0 });
-            numInterval.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
             numInterval.Name = "numInterval";
             numInterval.Size = new Size(125, 27);
             numInterval.TabIndex = 1;

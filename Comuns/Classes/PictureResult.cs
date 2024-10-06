@@ -16,9 +16,26 @@ namespace Comuns.Classes
         [JsonPropertyName("detections")]
         public ICollection<Prediction> Detections { get; set; }
 
+        [JsonPropertyName("hash")]
+        public int Hash { get { return GetSortingAgnosticHash(); } }
+
         public PictureResult()
         {
             Detections = [];
+        }
+
+        public int GetSortingAgnosticHash()
+        {
+            IEnumerable<(string, int)> groups = Detections
+                .GroupBy(detection => detection.Name)
+                .Select(group => (group.First().Name, group.Count()));
+
+            int code = 2147483647;
+            foreach ((string name, int count) in groups)
+            {
+                code ^= name.GetHashCode() + count;
+            }
+            return code;
         }
     }
 }

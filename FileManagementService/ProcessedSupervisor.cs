@@ -2,6 +2,7 @@
 using Comuns.Interfaces;
 using FileHandler.Services;
 using System.IO.Compression;
+using System.Text.Json;
 
 namespace FileManagementService
 {
@@ -31,6 +32,11 @@ namespace FileManagementService
         {
             _logger.LogInformation("Processing entry: {entry}", entry);
 
+            if (ShouldSkip(entry))
+            {
+                return;
+            }
+
             IResult result = ValidateEntry(entry);
 
             if (!result.Success)
@@ -40,21 +46,48 @@ namespace FileManagementService
                 return;
             }
 
-            CompressAndDelete(entry);
-            SendToBlobStorage(entry);
+            Trim(entry);
+            DateTime surgeryDay = Validator.GetSurgeryDateFromFolderName(entry);
+            int room = Validator.GetSurgeryRoomFromFolderName(entry);
+            MoveToGallery(entry, room, surgeryDay);
         }
 
-        private void CompressAndDelete(string entry)
+        private bool ShouldSkip(string entry)
         {
-            string zipPath = entry + ".zip";
-            ZipFile.CreateFromDirectory(entry, zipPath);            
-            Directory.Delete(entry, true);
+            string entryName = Path.GetFileNameWithoutExtension(entry);
+            string extension = Path.GetExtension(entry);
+
+            bool isTemp = (extension == "" && entryName.StartsWith("temp-"));
+            bool isTrimmed = (extension == ".zip" && entryName.StartsWith("trim-"));
+
+            return isTemp || isTrimmed;
         }
 
-        private void SendToBlobStorage(string entry)
+        private void Trim(string entry)
         {
-            // TODO: Implement blob storage https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet?tabs=visual-studio%2Cmanaged-identity%2Croles-azure-portal%2Csign-in-azure-cli%2Cidentity-visual-studio&pivots=blob-storage-quickstart-scratch
-            throw new NotImplementedException();
+            string resultsPath = Path.Combine(entry, "results.json");
+            string content = File.ReadAllText(resultsPath);
+            SurgeryResult? surgeryResult = JsonSerializer.Deserialize<SurgeryResult>(content);
+
+            if (surgeryResult is null) return;
+
+            int lastHash = 0;
+
+            for (int i = surgeryResult.Timeline.Count() - 1; i >= 0; i--)
+            {
+                PictureResult element = surgeryResult.Timeline.ElementAt(i);
+                if (element.Hash == lastHash)
+                {
+                    surgeryResult.Timeline.Remove(element);
+                }
+                else
+                {
+                    lastHash = element.Hash;
+                }
+            }
+
+            string newContent = JsonSerializer.Serialize(surgeryResult);
+            File.WriteAllText(resultsPath, newContent);
         }
 
         protected override IResult ValidateEntry(string entry)

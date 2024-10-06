@@ -206,5 +206,25 @@ namespace FileHandler.Services
 
             return Result.Successfull;
         }
+
+        public static DateTime GetSurgeryDateFromFolderName(string entry)
+        {
+            string entryName = Path.GetFileNameWithoutExtension(entry);
+            Match match = MatchSurgeryFolderNamePattern(entryName);
+
+            string startText = match.Groups["start"].Value;
+
+            return DateTime.ParseExact(startText, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+        }
+
+        internal static int GetSurgeryRoomFromFolderName(string entry)
+        {
+            string entryName = Path.GetFileNameWithoutExtension(entry);
+            Match match = MatchSurgeryFolderNamePattern(entryName);
+
+            string roomText = match.Groups["room"].Value;
+
+            return int.Parse(roomText);
+        }
     }
 }
