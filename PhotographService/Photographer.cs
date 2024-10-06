@@ -9,71 +9,25 @@ using System.Diagnostics;
 using DirectShowLib;
 using System.Drawing.Imaging;
 using Emgu.CV.Dai;
+using System.Timers;
 
 namespace PhotographService
 {
     public class Photographer : IDisposable
     {
         private VideoCapture _captureDevice;
-        Mat _frame;
-        bool _isDisposing = false;
+        private Mat _frame;
+        private bool _isDisposing = false;
 
         public delegate void ShowCapture(Image image);
+
         public bool IsCapturing { get; private set; }
+        public bool Ended { get; private set; }
+        public RecordingMetadata Metadata { get; private set; }
 
         public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 960, int desiredHeight = 720)
         {
             LoadCamera(cameraName, desiredWidth, desiredHeight);
-        }
-
-        public bool CapturePhoto(string storagePath, ShowCapture func)
-        {
-            if (_frame.IsEmpty)
-                return false;
-
-            using (Image image = _frame.ToBitmap())
-            {
-                string filePath = Path.Combine(storagePath, "processing.jpg");
-                image.Save(filePath, ImageFormat.Jpeg);
-                func(image);
-            }
-
-            return true;
-        }
-
-        public void StartCapture(string storagePath, int interval, ShowCapture func)
-        {
-            if (!IsCapturing)
-            {
-                IsCapturing = true;
-                Task.Run(() => CapturePhotos(storagePath, interval, func));
-            }
-        }
-
-        public void StopCapture()
-        {
-            IsCapturing = false;
-        }
-
-        private void CapturePhotos(string storagePath, int interval, ShowCapture func)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            int elapsedTime = 0;
-            stopwatch.Start();
-
-            while (IsCapturing)
-            {
-                elapsedTime = (int)stopwatch.Elapsed.TotalSeconds;
-
-                if (CapturePhoto(storagePath, func))
-                {
-                    string fileName = Path.Combine(storagePath, "processing.jpg");
-                    string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsedTime));
-                    File.Move(fileName, newFileName);
-                }
-
-                Thread.Sleep(interval * 1000);
-            }
         }
 
         private void LoadCamera(string name, int width, int height)
@@ -108,6 +62,63 @@ namespace PhotographService
             }
         }
 
+        public void StartCapture(string storagePath, int interval, ShowCapture func)
+        {
+            if (!IsCapturing)
+            {
+                IsCapturing = true;
+                Ended = false;
+                Task.Run(() => CapturePhotos(storagePath, interval, func));
+            }
+        }
+
+        public void StopCapture()
+        {
+            IsCapturing = false;
+        }
+
+        private void CapturePhotos(string storagePath, int interval, ShowCapture func)
+        {
+            DateTime start = DateTime.Now;
+            int elapsed = 0;
+            int shots = 0;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (IsCapturing)
+            {
+                elapsed = (int)stopwatch.Elapsed.TotalSeconds;
+
+                if (CapturePhoto(storagePath, func))
+                {
+                    shots++;
+                    string fileName = Path.Combine(storagePath, "processing.jpg");
+                    string newFileName = Path.Combine(storagePath, GetNameFromElapsed(elapsed));
+                    File.Move(fileName, newFileName);
+                }
+
+                Thread.Sleep(interval * 1000);
+            }
+
+            this.Ended = true;
+            this.Metadata = new RecordingMetadata(start, shots, elapsed);
+        }
+
+        public bool CapturePhoto(string storagePath, ShowCapture func)
+        {
+            if (_frame.IsEmpty)
+                return false;
+
+            using (Image image = _frame.ToBitmap())
+            {
+                string filePath = Path.Combine(storagePath, "processing.jpg");
+                image.Save(filePath, ImageFormat.Jpeg);
+                func(image);
+            }
+
+            return true;
+        }
+
         private string GetNameFromElapsed(int elapsedTime)
         {
             int hours = elapsedTime / 3600;
@@ -121,6 +132,14 @@ namespace PhotographService
             _isDisposing = true;
             _captureDevice.Dispose();
             _frame.Dispose();
+        }
+
+        public async Task WaitEnd()
+        {
+            while (!Ended)
+            {
+                await Task.Delay(100);
+            }
         }
     }
 }

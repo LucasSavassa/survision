@@ -1,6 +1,7 @@
 ﻿using Comuns.Classes;
 using Comuns.Interfaces;
 using FileManagementService.Enums;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace FileManagementService
@@ -84,26 +85,26 @@ namespace FileManagementService
             }
         }
 
-        public static string CreateTemporaryFolder(int room, DateTimeOffset start)
+        public static string CreateTemporaryFolder(int room, DateTime start)
         {
             string path = CreateFolder(room, start);
             CreateMetadata(room, start, path);
             return path;
         }
 
-        private static string CreateFolder(int room, DateTimeOffset start)
+        private static string CreateFolder(int room, DateTime start)
         {
             string path = Path.Combine(RootPath, $"surgery-{room}-{start:yyyyMMddHHmmss}");
             Directory.CreateDirectory(path);
             return path;
         }
 
-        private static void CreateMetadata(int room, DateTimeOffset start, string path)
+        private static void CreateMetadata(int room, DateTime start, string path)
         {
             Surgery surgery = new Surgery
             {
                 Room = room,
-                Start = start.DateTime
+                Start = start
             };
 
             string json = JsonSerializer.Serialize(surgery);
@@ -111,11 +112,30 @@ namespace FileManagementService
             File.WriteAllText(filePath, json);
         }
 
-        public static void MoveTemporaryFolder(string source)
+        public static void UpdateMetadata(string path, int shots, int seconds)
         {
-            string folderName = Path.GetFileName(source);
-            string destination = Path.Combine(QueuePath, folderName);
-            Directory.Move(source, destination);
+            string json = File.ReadAllText(path);
+            Surgery surgery = JsonSerializer.Deserialize<Surgery>(json);
+            surgery.Shots = (uint)shots;
+            surgery.Seconds = (uint)seconds;
+            json = JsonSerializer.Serialize(surgery);
+            File.WriteAllText(path, json);
+        }
+
+        public static string ZipFolder(string path)
+        {
+            string name = Path.GetFileName(path);
+            string destination = Path.Combine(RootPath, $"{name}.zip");
+            ZipFile.CreateFromDirectory(path, destination);
+            Directory.Delete(path, true);
+            return destination;
+        }
+
+        public static void MoveToQueue(string path)
+        {
+            string name = Path.GetFileName(path);
+            string destination = Path.Combine(QueuePath, name);
+            Directory.Move(path, destination);
         }
 
         protected void DiscardEntry(string entry, string destFolderName = "")

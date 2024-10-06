@@ -69,18 +69,23 @@ namespace UserInterface
             ToggleState(ApplicationState.Recording);
 
             int room = (int)numRoom.Value;
-            DateTimeOffset start = DateTimeOffset.Now;
+            DateTime start = DateTime.Now;
             int interval = (int)numInterval.Value;
             _tempPath = Supervisor.CreateTemporaryFolder(room, start);
 
             _photographer.StartCapture(_tempPath, interval, ShowImage);
         }
 
-        private void StopRecording()
+        private async Task StopRecording()
         {
             ToggleState(ApplicationState.Stopped);
             _photographer.StopCapture();
-            Supervisor.MoveTemporaryFolder(_tempPath);
+            await _photographer.WaitEnd();
+            RecordingMetadata metadata = _photographer.Metadata;
+            string metadataPath = Path.Combine(_tempPath, "metadata.json");
+            Supervisor.UpdateMetadata(metadataPath, metadata.Shots, metadata.Seconds);
+            string newPath = Supervisor.ZipFolder(_tempPath);
+            Supervisor.MoveToQueue(newPath);
         }
 
         private void ToggleState(ApplicationState state)
