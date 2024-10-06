@@ -1,4 +1,5 @@
 ﻿using Comuns.Enums;
+using Comuns.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Comuns.Classes
         public uint Shots { get; set; }
 
         [JsonPropertyName("start")]
+        [JsonConverter(typeof(CustomDateTime))]
         public DateTime Start { get; set; }
     }
 }
