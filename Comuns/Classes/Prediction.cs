@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Comuns.Classes
@@ -16,6 +17,7 @@ namespace Comuns.Classes
         public double Height { get; }
         public double Width { get; }
 
+        [JsonConstructor]
         public Prediction(string name, double probability, double left, double top, double height, double width)
         {
             Name = name;
