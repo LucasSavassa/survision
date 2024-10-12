@@ -36,15 +36,15 @@
             btnStart = new Button();
             lblRoom = new Label();
             tabRecordings = new TabPage();
-            listView1 = new ListView();
-            txtDuration = new Label();
-            txtStart = new Label();
-            txtCaptures = new Label();
-            txtRoom = new Label();
-            lblStart = new Label();
-            lblDuration = new Label();
-            lblCaptures = new Label();
+            btnExportSurgeryDesc = new Button();
+            btnExportJson = new Button();
+            numRoom2 = new NumericUpDown();
             lblRoom2 = new Label();
+            lisView = new ListView();
+            colStart = new ColumnHeader();
+            colDuration = new ColumnHeader();
+            colShots = new ColumnHeader();
+            colPath = new ColumnHeader();
             dtpDay = new DateTimePicker();
             lblDay = new Label();
             tabOptions = new TabPage();
@@ -55,11 +55,13 @@
             lblNeuralNet = new Label();
             numInterval = new NumericUpDown();
             lblInterval = new Label();
+            saveFileDialog1 = new SaveFileDialog();
             tab.SuspendLayout();
             tabRecord.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numRoom).BeginInit();
             ((System.ComponentModel.ISupportInitialize)imgCapture).BeginInit();
             tabRecordings.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numRoom2).BeginInit();
             tabOptions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numInterval).BeginInit();
             SuspendLayout();
@@ -94,6 +96,7 @@
             // numRoom
             // 
             numRoom.Location = new Point(6, 26);
+            numRoom.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
             numRoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numRoom.Name = "numRoom";
             numRoom.Size = new Size(125, 27);
@@ -145,15 +148,11 @@
             // 
             // tabRecordings
             // 
-            tabRecordings.Controls.Add(listView1);
-            tabRecordings.Controls.Add(txtDuration);
-            tabRecordings.Controls.Add(txtStart);
-            tabRecordings.Controls.Add(txtCaptures);
-            tabRecordings.Controls.Add(txtRoom);
-            tabRecordings.Controls.Add(lblStart);
-            tabRecordings.Controls.Add(lblDuration);
-            tabRecordings.Controls.Add(lblCaptures);
+            tabRecordings.Controls.Add(btnExportSurgeryDesc);
+            tabRecordings.Controls.Add(btnExportJson);
+            tabRecordings.Controls.Add(numRoom2);
             tabRecordings.Controls.Add(lblRoom2);
+            tabRecordings.Controls.Add(lisView);
             tabRecordings.Controls.Add(dtpDay);
             tabRecordings.Controls.Add(lblDay);
             tabRecordings.Location = new Point(4, 29);
@@ -164,108 +163,93 @@
             tabRecordings.Text = "Gravações";
             tabRecordings.UseVisualStyleBackColor = true;
             // 
-            // listView1
+            // btnExportSurgeryDesc
             // 
-            listView1.Location = new Point(137, 3);
-            listView1.Name = "listView1";
-            listView1.Size = new Size(610, 387);
-            listView1.TabIndex = 10;
-            listView1.UseCompatibleStateImageBehavior = false;
+            btnExportSurgeryDesc.Location = new Point(6, 326);
+            btnExportSurgeryDesc.Name = "btnExportSurgeryDesc";
+            btnExportSurgeryDesc.Size = new Size(125, 29);
+            btnExportSurgeryDesc.TabIndex = 14;
+            btnExportSurgeryDesc.Text = "Salvar resultado";
+            btnExportSurgeryDesc.TextAlign = ContentAlignment.MiddleLeft;
+            btnExportSurgeryDesc.UseVisualStyleBackColor = true;
+            btnExportSurgeryDesc.Click += btnExportSurgeryDesc_Click;
             // 
-            // txtDuration
+            // btnExportJson
             // 
-            txtDuration.AutoSize = true;
-            txtDuration.Font = new Font("Segoe UI", 8F);
-            txtDuration.Location = new Point(3, 373);
-            txtDuration.Name = "txtDuration";
-            txtDuration.Size = new Size(15, 19);
-            txtDuration.TabIndex = 9;
-            txtDuration.Text = "-";
+            btnExportJson.Location = new Point(6, 361);
+            btnExportJson.Name = "btnExportJson";
+            btnExportJson.Size = new Size(125, 29);
+            btnExportJson.TabIndex = 13;
+            btnExportJson.Text = "Salvar json";
+            btnExportJson.TextAlign = ContentAlignment.MiddleLeft;
+            btnExportJson.UseVisualStyleBackColor = true;
+            btnExportJson.Click += btnExportJson_Click;
             // 
-            // txtStart
+            // numRoom2
             // 
-            txtStart.AutoSize = true;
-            txtStart.Font = new Font("Segoe UI", 8F);
-            txtStart.Location = new Point(3, 328);
-            txtStart.Name = "txtStart";
-            txtStart.Size = new Size(15, 19);
-            txtStart.TabIndex = 8;
-            txtStart.Text = "-";
-            // 
-            // txtCaptures
-            // 
-            txtCaptures.AutoSize = true;
-            txtCaptures.Font = new Font("Segoe UI", 8F);
-            txtCaptures.Location = new Point(3, 283);
-            txtCaptures.Name = "txtCaptures";
-            txtCaptures.Size = new Size(15, 19);
-            txtCaptures.TabIndex = 7;
-            txtCaptures.Text = "-";
-            // 
-            // txtRoom
-            // 
-            txtRoom.AutoSize = true;
-            txtRoom.Font = new Font("Segoe UI", 8F);
-            txtRoom.Location = new Point(3, 238);
-            txtRoom.Name = "txtRoom";
-            txtRoom.Size = new Size(15, 19);
-            txtRoom.TabIndex = 6;
-            txtRoom.Text = "-";
-            // 
-            // lblStart
-            // 
-            lblStart.AutoSize = true;
-            lblStart.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            lblStart.Location = new Point(3, 309);
-            lblStart.Name = "lblStart";
-            lblStart.Size = new Size(45, 19);
-            lblStart.TabIndex = 5;
-            lblStart.Text = "Início";
-            // 
-            // lblDuration
-            // 
-            lblDuration.AutoSize = true;
-            lblDuration.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            lblDuration.Location = new Point(3, 354);
-            lblDuration.Name = "lblDuration";
-            lblDuration.Size = new Size(65, 19);
-            lblDuration.TabIndex = 4;
-            lblDuration.Text = "Duração";
-            // 
-            // lblCaptures
-            // 
-            lblCaptures.AutoSize = true;
-            lblCaptures.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            lblCaptures.Location = new Point(3, 264);
-            lblCaptures.Name = "lblCaptures";
-            lblCaptures.Size = new Size(68, 19);
-            lblCaptures.TabIndex = 3;
-            lblCaptures.Text = "Capturas";
+            numRoom2.Location = new Point(6, 26);
+            numRoom2.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            numRoom2.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numRoom2.Name = "numRoom2";
+            numRoom2.Size = new Size(125, 27);
+            numRoom2.TabIndex = 12;
+            numRoom2.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            numRoom2.ValueChanged += numRoom2_ValueChanged;
             // 
             // lblRoom2
             // 
             lblRoom2.AutoSize = true;
-            lblRoom2.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            lblRoom2.Location = new Point(3, 219);
+            lblRoom2.Location = new Point(3, 3);
             lblRoom2.Name = "lblRoom2";
-            lblRoom2.Size = new Size(37, 19);
-            lblRoom2.TabIndex = 2;
+            lblRoom2.Size = new Size(37, 20);
+            lblRoom2.TabIndex = 11;
             lblRoom2.Text = "Sala";
+            // 
+            // lisView
+            // 
+            lisView.Columns.AddRange(new ColumnHeader[] { colStart, colDuration, colShots, colPath });
+            lisView.FullRowSelect = true;
+            lisView.Location = new Point(137, 3);
+            lisView.MultiSelect = false;
+            lisView.Name = "lisView";
+            lisView.ShowGroups = false;
+            lisView.Size = new Size(610, 387);
+            lisView.TabIndex = 10;
+            lisView.UseCompatibleStateImageBehavior = false;
+            lisView.View = View.Details;
+            lisView.ControlAdded += lisView_ControlAdded;
+            // 
+            // colStart
+            // 
+            colStart.Text = "Início";
+            // 
+            // colDuration
+            // 
+            colDuration.Text = "Duração";
+            // 
+            // colShots
+            // 
+            colShots.Text = "Fotos";
+            // 
+            // colPath
+            // 
+            colPath.Text = "Caminho";
             // 
             // dtpDay
             // 
             dtpDay.CustomFormat = "dd/MM/yyyy";
             dtpDay.Format = DateTimePickerFormat.Custom;
-            dtpDay.Location = new Point(6, 26);
+            dtpDay.Location = new Point(6, 84);
             dtpDay.Name = "dtpDay";
             dtpDay.Size = new Size(125, 27);
             dtpDay.TabIndex = 1;
-            dtpDay.Value = new DateTime(2024, 9, 30, 20, 16, 0, 0);
+            dtpDay.Value = new DateTime(2024, 10, 12, 9, 45, 49, 337);
+            dtpDay.ValueChanged += dtpDay_ValueChanged;
             // 
             // lblDay
             // 
             lblDay.AutoSize = true;
-            lblDay.Location = new Point(3, 3);
+            lblDay.Location = new Point(3, 61);
             lblDay.Name = "lblDay";
             lblDay.Size = new Size(32, 20);
             lblDay.TabIndex = 0;
@@ -369,6 +353,7 @@
             ((System.ComponentModel.ISupportInitialize)imgCapture).EndInit();
             tabRecordings.ResumeLayout(false);
             tabRecordings.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numRoom2).EndInit();
             tabOptions.ResumeLayout(false);
             tabOptions.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numInterval).EndInit();
@@ -388,15 +373,9 @@
         private NumericUpDown numRoom;
         private DateTimePicker dtpDay;
         private Label lblDay;
-        private Label lblRoom2;
-        private Label lblCaptures;
-        private Label lblDuration;
-        private Label txtDuration;
-        private Label txtStart;
-        private Label txtCaptures;
+        private NumericUpDown numRoom2;
         private Label txtRoom;
-        private Label lblStart;
-        private ListView listView1;
+        private ListView lisView;
         private Label lblInterval;
         private Label lblNeuralNet;
         private NumericUpDown numInterval;
@@ -404,5 +383,13 @@
         private ComboBox selNeuralNet;
         private Label lblDemo;
         private CheckBox ckbDemo;
+        private Label lblRoom2;
+        private ColumnHeader colStart;
+        private ColumnHeader colDuration;
+        private ColumnHeader colShots;
+        private Button btnExportSurgeryDesc;
+        private Button btnExportJson;
+        private ColumnHeader colPath;
+        private SaveFileDialog saveFileDialog1;
     }
 }

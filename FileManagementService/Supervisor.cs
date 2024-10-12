@@ -116,7 +116,8 @@ namespace FileManagementService
         public static void UpdateMetadata(string path, int shots, int seconds)
         {
             string json = File.ReadAllText(path);
-            Surgery surgery = JsonSerializer.Deserialize<Surgery>(json);
+            Surgery? surgery = JsonSerializer.Deserialize<Surgery>(json);
+            if (surgery is null) return;
             surgery.Shots = (uint)shots;
             surgery.Seconds = (uint)seconds;
             json = JsonSerializer.Serialize(surgery);
@@ -148,6 +149,25 @@ namespace FileManagementService
             Directory.CreateDirectory(destinationFolder);
             string destination = Path.Combine(destinationFolder, name);
             Directory.Move(zipped, destination);
+            InvokeGalleryUpdated();
+        }
+
+        public static IEnumerable<string> GetSurgeriesAtGallery(int room, DateTime date)
+        {
+            string path = Path.Combine(
+                GalleryPath,
+                $"{room}",
+                $"{date.Year}",
+                $"{date.Month}",
+                $"{date.Day}"
+            );
+
+            if (!Directory.Exists(path))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return Directory.EnumerateFiles(path);
         }
 
         protected void DiscardEntry(string entry, string destFolderName = "")
