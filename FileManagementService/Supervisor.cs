@@ -149,7 +149,6 @@ namespace FileManagementService
             Directory.CreateDirectory(destinationFolder);
             string destination = Path.Combine(destinationFolder, name);
             Directory.Move(zipped, destination);
-            InvokeGalleryUpdated();
         }
 
         public static IEnumerable<string> GetSurgeriesAtGallery(int room, DateTime date)

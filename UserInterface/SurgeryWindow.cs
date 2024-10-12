@@ -3,6 +3,7 @@ using FileManagementService;
 using FileManagementService.Enums;
 using PhotographService;
 using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 using UserInterface.Enums;
 using UserInterface.Properties;
@@ -82,7 +83,6 @@ namespace UserInterface
 
         private async Task StopRecording()
         {
-            SubscribeToEvents();
             ToggleState(ApplicationState.Stopped);
             _photographer.StopCapture();
             await _photographer.WaitEnd();
@@ -189,6 +189,133 @@ namespace UserInterface
             if (lisView.SelectedItems.Count < 1)
             {
                 MessageBox.Show("Não foi possível exportar a descrição cirúrgica porque nenhuma cirurgia foi selecionada.");
+            }
+
+            string zipPath = lisView.SelectedItems[0].SubItems[3].Text;
+            if (!File.Exists(zipPath))
+            {
+                MessageBox.Show("Não foi possível encontrar a pasta da cirurgia selecionada.");
+                return;
+            }
+
+            using (ZipArchive zip = ZipFile.OpenRead(zipPath))
+            {
+                ZipArchiveEntry? results = zip.GetEntry("results.json");
+
+                if (results is null)
+                {
+                    MessageBox.Show("Não foi possível encontrar o arquivo de resultados da cirurgia selecionada.");
+                    return;
+                }
+
+                using (Stream stream = results.Open())
+                {
+                    string content = string.Empty;
+
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        content = reader.ReadToEnd();
+                    }
+
+                    if (string.IsNullOrEmpty(content))
+                    {
+                        MessageBox.Show("Não foi possível exportar a descrição cirúrgica porque o arquivo de resultados está vazio.");
+                        return;
+                    }
+
+                    SurgeryResult? surgeryResult = JsonSerializer.Deserialize<SurgeryResult>(content);
+
+                    if (surgeryResult is null)
+                    {
+                        MessageBox.Show("Não foi possível exportar a descrição cirúrgica porque o arquivo de resultados não é válido.");
+                        return;
+                    }
+
+                    string summary = SummarizeSurgeryResult(surgeryResult);
+
+                    saveFileDialog1.Filter = "Text files (*.txt)|*.txt";
+                    saveFileDialog1.FileName = Path.GetFileName(results.FullName);
+                    if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                    {
+                        using (Stream output = saveFileDialog1.OpenFile())
+                        {
+                            using (StreamWriter writer = new StreamWriter(output))
+                            {
+                                writer.Write(summary);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private string SummarizeSurgeryResult(SurgeryResult surgeryResult)
+        {
+            StringBuilder summary = new StringBuilder();
+            summary.AppendLine("Descrição da cirurgia");
+            summary.AppendLine($"Sala: {surgeryResult.Surgery.Room}");
+            summary.AppendLine($"Início: {surgeryResult.Surgery.Start}");
+            summary.AppendLine($"Duração: {surgeryResult.Surgery.Seconds} segundos");
+            summary.AppendLine($"Fotos: {surgeryResult.Surgery.Shots}");
+            summary.AppendLine("");
+            summary.AppendLine("Materiais detectados no início:");
+
+            PictureResult firstPicture = surgeryResult.Timeline.First();
+            IEnumerable<(string, int)> firstGrouping = new List<(string, int)>();
+            if (firstPicture is not null)
+            {
+                ICollection<Prediction> detections = firstPicture.Detections;
+                if (detections.Count() > 0)
+                {
+                    firstGrouping = detections.GroupBy(detection => detection.Name).Select(group => (group.First().Name, group.Count()));
+                    foreach ((string name, int count) in firstGrouping)
+                    {
+                        summary.AppendLine($"{name}: ({count})");
+                    }
+                }
+            }
+
+            summary.AppendLine("");
+            summary.AppendLine("Materiais detectados no final:");
+            PictureResult lastPicture = surgeryResult.Timeline.Last();
+            IEnumerable<(string, int)> lastGrouping = new List<(string, int)>();
+            if (lastPicture is not null)
+            {
+                ICollection<Prediction> detections = lastPicture.Detections;
+                if (detections.Count() > 0)
+                {
+                    lastGrouping = detections.GroupBy(detection => detection.Name).Select(group => (group.First().Name, group.Count()));
+                    foreach ((string name, int count) in lastGrouping)
+                    {
+                        summary.AppendLine($"{name}: ({count})");
+                    }
+                }
+            }
+
+            summary.AppendLine("");
+            summary.AppendLine("Diferença:");
+            IEnumerable<(string, int)> delta = CalculateDelta(firstGrouping, lastGrouping);
+            foreach ((string name, int count) in delta)
+            {
+                if (count < 0)
+                {
+                    summary.AppendLine($"{count} {name} adicionados na bandeja.");
+                }
+                else
+                {
+                    summary.AppendLine($"{count} {name} removidos da bandeja.");
+                }
+            }
+
+            return summary.ToString();
+        }
+
+        private IEnumerable<(string, int)> CalculateDelta(IEnumerable<(string, int)> firstGrouping, IEnumerable<(string, int)> lastGrouping)
+        {
+            foreach ((string name, int count) in firstGrouping)
+            {
+                int delta = lastGrouping.FirstOrDefault(x => x.Item1 == name).Item2 - count;
+                yield return (name, delta);
             }
         }
 
