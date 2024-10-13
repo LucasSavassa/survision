@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagementService.Enums
+namespace Comuns.Enums
 {
     public enum NeuralNetworkType
     {

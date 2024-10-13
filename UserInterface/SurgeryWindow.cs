@@ -1,12 +1,15 @@
 using Comuns.Classes;
+using Comuns.Enums;
+using Comuns.Interfaces;
 using FileManagementService;
-using FileManagementService.Enums;
 using PhotographService;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using UserInterface.Enums;
 using UserInterface.Properties;
+using YoloPredictionService;
 
 namespace UserInterface
 {
@@ -36,7 +39,7 @@ namespace UserInterface
 
             selNeuralNet.SelectedIndex = Settings.Default.NeuralNet;
             Supervisor.NeuralNetwork = (NeuralNetworkType)Settings.Default.NeuralNet;
-
+            Supervisor.Threshold = Settings.Default.Threshold;
             ckbDemo.Checked = Settings.Default.IsDemo;
         }
 
@@ -115,7 +118,19 @@ namespace UserInterface
 
         private void ShowImage(Image image)
         {
-            imgCapture.Image = new Bitmap(image);
+            Bitmap imageBitmap;
+
+            if(Settings.Default.IsDemo)
+            {
+                imageBitmap = new Bitmap(image);
+                DrawDetectedObjects(ref imageBitmap);
+            }
+            else
+            {
+                imageBitmap = new Bitmap(image);
+            }
+            
+            imgCapture.Image = imageBitmap;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -356,6 +371,48 @@ namespace UserInterface
                         }
                     }
                 }
+            }
+        }
+
+        private void DrawDetectedObjects(ref Bitmap bitmap)
+        {
+            IPredictionService predictionService;
+            
+            switch((NeuralNetworkType)Settings.Default.NeuralNet)
+            {
+                case NeuralNetworkType.Yolo:
+                    predictionService = new ImagePredictionYolo();
+                    break;
+                default:
+                    predictionService = new ImagePredictionYolo();
+                    break;
+            }
+         
+            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Settings.Default.Threshold);
+
+            foreach (Prediction prediction in predictionResult.Predictions)
+            {
+                float left = (float)prediction.Left * bitmap.Width;
+                float top = (float)prediction.Top * bitmap.Height;
+                float width = (float)prediction.Width * bitmap.Width;
+                float height = (float)prediction.Height * bitmap.Height;
+
+                RectangleF rectangleF = new(left, top, width, height);
+                DrawObject(ref bitmap, rectangleF, prediction.Name, prediction.Probability);
+            }
+        }
+
+        public void DrawObject(ref Bitmap bitmap, RectangleF rectangleF, string objectName, double probability)
+        {
+            using (Graphics g = Graphics.FromImage(bitmap))
+            using (Pen pen = new Pen(Color.Red, 2))
+            using (Font font = new Font("Arial", 16, FontStyle.Bold))
+            using (Brush brush = new SolidBrush(Color.Yellow))
+            {
+                g.DrawRectangle(pen, rectangleF);
+
+                string text = $"{objectName} - {probability * 100:0.00}%";
+                g.DrawString(text, font, brush, new PointF(rectangleF.Left, rectangleF.Top - 30));
             }
         }
     }

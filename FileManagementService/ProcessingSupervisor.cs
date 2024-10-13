@@ -1,8 +1,8 @@
 ﻿using Comuns.Classes;
+using Comuns.Enums;
 using Comuns.Interfaces;
 using CustomVisionPredictionService;
 using FileHandler.Services;
-using FileManagementService.Enums;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Text.Json;
@@ -13,8 +13,6 @@ namespace FileManagementService
 {
     internal class ProcessingSupervisor : Supervisor
     {
-        private int _threshold = 50;
-
         protected override string MainPath => ProcessingPath;
 
         public ProcessingSupervisor(ILogger<ProcessingSupervisor> logger) : base(logger) { }
@@ -126,7 +124,7 @@ namespace FileManagementService
                         using (Bitmap bitmap = new(file))
                         {
                             IPredictionService predictionService = GetPredictionService();
-                            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, _threshold);
+                            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Threshold);
                             PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
                             surgeryResult.Timeline.Add(pictureResult);
                         }
