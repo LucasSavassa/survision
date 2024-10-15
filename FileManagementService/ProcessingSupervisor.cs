@@ -124,7 +124,7 @@ namespace FileManagementService
                         using (Bitmap bitmap = new(file))
                         {
                             IPredictionService predictionService = GetPredictionService();
-                            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Threshold);
+                            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, InferiorThreshold);
                             PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
                             surgeryResult.Timeline.Add(pictureResult);
                         }

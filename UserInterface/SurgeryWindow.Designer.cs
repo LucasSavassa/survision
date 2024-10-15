@@ -48,6 +48,10 @@
             dtpDay = new DateTimePicker();
             lblDay = new Label();
             tabOptions = new TabPage();
+            numInferiorThreshold = new NumericUpDown();
+            lblInferiorThreshold = new Label();
+            numSuperiorThreshold = new NumericUpDown();
+            lblSuperiorThreshold = new Label();
             ckbDemo = new CheckBox();
             lblDemo = new Label();
             btnSave = new Button();
@@ -63,6 +67,8 @@
             tabRecordings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numRoom2).BeginInit();
             tabOptions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numInferiorThreshold).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numSuperiorThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numInterval).BeginInit();
             SuspendLayout();
             // 
@@ -165,6 +171,7 @@
             // 
             // btnExportSurgeryDesc
             // 
+            btnExportSurgeryDesc.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnExportSurgeryDesc.Location = new Point(6, 326);
             btnExportSurgeryDesc.Name = "btnExportSurgeryDesc";
             btnExportSurgeryDesc.Size = new Size(125, 29);
@@ -176,6 +183,7 @@
             // 
             // btnExportJson
             // 
+            btnExportJson.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnExportJson.Location = new Point(6, 361);
             btnExportJson.Name = "btnExportJson";
             btnExportJson.Size = new Size(125, 29);
@@ -207,6 +215,7 @@
             // 
             // lisView
             // 
+            lisView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lisView.Columns.AddRange(new ColumnHeader[] { colStart, colDuration, colShots, colPath });
             lisView.FullRowSelect = true;
             lisView.Location = new Point(137, 3);
@@ -257,6 +266,10 @@
             // 
             // tabOptions
             // 
+            tabOptions.Controls.Add(numInferiorThreshold);
+            tabOptions.Controls.Add(lblInferiorThreshold);
+            tabOptions.Controls.Add(numSuperiorThreshold);
+            tabOptions.Controls.Add(lblSuperiorThreshold);
             tabOptions.Controls.Add(ckbDemo);
             tabOptions.Controls.Add(lblDemo);
             tabOptions.Controls.Add(btnSave);
@@ -272,10 +285,48 @@
             tabOptions.Text = "Opções";
             tabOptions.UseVisualStyleBackColor = true;
             // 
+            // numInferiorThreshold
+            // 
+            numInferiorThreshold.Increment = new decimal(new int[] { 5, 0, 0, 0 });
+            numInferiorThreshold.Location = new Point(6, 210);
+            numInferiorThreshold.Maximum = new decimal(new int[] { 75, 0, 0, 0 });
+            numInferiorThreshold.Name = "numInferiorThreshold";
+            numInferiorThreshold.Size = new Size(125, 27);
+            numInferiorThreshold.TabIndex = 10;
+            numInferiorThreshold.Value = new decimal(new int[] { 75, 0, 0, 0 });
+            // 
+            // lblInferiorThreshold
+            // 
+            lblInferiorThreshold.AutoSize = true;
+            lblInferiorThreshold.Location = new Point(6, 187);
+            lblInferiorThreshold.Name = "lblInferiorThreshold";
+            lblInferiorThreshold.Size = new Size(102, 20);
+            lblInferiorThreshold.TabIndex = 9;
+            lblInferiorThreshold.Text = "Limite inferior";
+            // 
+            // numSuperiorThreshold
+            // 
+            numSuperiorThreshold.Increment = new decimal(new int[] { 5, 0, 0, 0 });
+            numSuperiorThreshold.Location = new Point(6, 149);
+            numSuperiorThreshold.Minimum = new decimal(new int[] { 75, 0, 0, 0 });
+            numSuperiorThreshold.Name = "numSuperiorThreshold";
+            numSuperiorThreshold.Size = new Size(125, 27);
+            numSuperiorThreshold.TabIndex = 8;
+            numSuperiorThreshold.Value = new decimal(new int[] { 85, 0, 0, 0 });
+            // 
+            // lblSuperiorThreshold
+            // 
+            lblSuperiorThreshold.AutoSize = true;
+            lblSuperiorThreshold.Location = new Point(6, 126);
+            lblSuperiorThreshold.Name = "lblSuperiorThreshold";
+            lblSuperiorThreshold.Size = new Size(108, 20);
+            lblSuperiorThreshold.TabIndex = 7;
+            lblSuperiorThreshold.Text = "Limite superior";
+            // 
             // ckbDemo
             // 
             ckbDemo.AutoSize = true;
-            ckbDemo.Location = new Point(141, 170);
+            ckbDemo.Location = new Point(11, 271);
             ckbDemo.Name = "ckbDemo";
             ckbDemo.Size = new Size(18, 17);
             ckbDemo.TabIndex = 6;
@@ -284,7 +335,7 @@
             // lblDemo
             // 
             lblDemo.AutoSize = true;
-            lblDemo.Location = new Point(137, 145);
+            lblDemo.Location = new Point(6, 248);
             lblDemo.Name = "lblDemo";
             lblDemo.Size = new Size(50, 20);
             lblDemo.TabIndex = 5;
@@ -292,7 +343,7 @@
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(6, 361);
+            btnSave.Location = new Point(6, 308);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(125, 29);
             btnSave.TabIndex = 4;
@@ -304,7 +355,7 @@
             // 
             selNeuralNet.FormattingEnabled = true;
             selNeuralNet.Items.AddRange(new object[] { "Yolo", "Custom Vision" });
-            selNeuralNet.Location = new Point(137, 97);
+            selNeuralNet.Location = new Point(6, 87);
             selNeuralNet.Name = "selNeuralNet";
             selNeuralNet.Size = new Size(125, 28);
             selNeuralNet.TabIndex = 3;
@@ -312,7 +363,7 @@
             // lblNeuralNet
             // 
             lblNeuralNet.AutoSize = true;
-            lblNeuralNet.Location = new Point(137, 74);
+            lblNeuralNet.Location = new Point(6, 64);
             lblNeuralNet.Name = "lblNeuralNet";
             lblNeuralNet.Size = new Size(88, 20);
             lblNeuralNet.TabIndex = 2;
@@ -320,7 +371,7 @@
             // 
             // numInterval
             // 
-            numInterval.Location = new Point(137, 26);
+            numInterval.Location = new Point(6, 26);
             numInterval.Maximum = new decimal(new int[] { 30, 0, 0, 0 });
             numInterval.Name = "numInterval";
             numInterval.Size = new Size(125, 27);
@@ -330,7 +381,7 @@
             // lblInterval
             // 
             lblInterval.AutoSize = true;
-            lblInterval.Location = new Point(137, 3);
+            lblInterval.Location = new Point(6, 3);
             lblInterval.Name = "lblInterval";
             lblInterval.Size = new Size(67, 20);
             lblInterval.TabIndex = 0;
@@ -356,6 +407,8 @@
             ((System.ComponentModel.ISupportInitialize)numRoom2).EndInit();
             tabOptions.ResumeLayout(false);
             tabOptions.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numInferiorThreshold).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numSuperiorThreshold).EndInit();
             ((System.ComponentModel.ISupportInitialize)numInterval).EndInit();
             ResumeLayout(false);
         }
@@ -391,5 +444,9 @@
         private Button btnExportJson;
         private ColumnHeader colPath;
         private SaveFileDialog saveFileDialog1;
+        private NumericUpDown numInferiorThreshold;
+        private Label lblInferiorThreshold;
+        private NumericUpDown numSuperiorThreshold;
+        private Label lblSuperiorThreshold;
     }
 }

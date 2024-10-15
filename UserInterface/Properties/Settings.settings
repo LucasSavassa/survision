@@ -11,8 +11,11 @@
     <Setting Name="IsDemo" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="Threshold" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">80</Value>
+    <Setting Name="SuperiorThreshold" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">85</Value>
+    </Setting>
+    <Setting Name="InferiorThreshold" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">50</Value>
     </Setting>
   </Settings>
 </SettingsFile>

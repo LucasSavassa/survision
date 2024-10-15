@@ -9,5 +9,6 @@ namespace UserInterface
     internal static class Constantes
     {
         public const string InvalidRoomMessage = "O número da sala não é válido.";
+        public const string IsRecordingMessage = "Não é possível realizar essa ação enquanto o sistema está gravando uma cirurgia.";
     }
 }

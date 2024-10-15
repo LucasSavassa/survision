@@ -18,6 +18,7 @@ namespace UserInterface
         private uint _room = 0;
         private Photographer? _photographer;
         private string _tempPath = string.Empty;
+        private bool _isRecording = false;
 
         public ApplicationState State { get; private set; }
 
@@ -39,20 +40,20 @@ namespace UserInterface
 
             selNeuralNet.SelectedIndex = Settings.Default.NeuralNet;
             Supervisor.NeuralNetwork = (NeuralNetworkType)Settings.Default.NeuralNet;
-            Supervisor.Threshold = Settings.Default.Threshold;
             ckbDemo.Checked = Settings.Default.IsDemo;
+            Supervisor.InferiorThreshold = Settings.Default.InferiorThreshold;
+            numSuperiorThreshold.Value = Settings.Default.SuperiorThreshold;
         }
 
         public void btnStart_Click(object sender, EventArgs e)
         {
             if (!RoomIsValid())
             {
-                DisplayValidationMessage();
+                DisplayValidationMessage(Constantes.InvalidRoomMessage);
+                return;
             }
-            else
-            {
-                StartRecording();
-            }
+            
+            StartRecording();
         }
 
         public async void btnStop_Click(object sender, EventArgs e)
@@ -67,9 +68,9 @@ namespace UserInterface
             return true;
         }
 
-        private void DisplayValidationMessage()
+        private void DisplayValidationMessage(string message)
         {
-            MessageBox.Show(Constantes.InvalidRoomMessage);
+            MessageBox.Show(message);
         }
 
         private void StartRecording()
@@ -87,6 +88,7 @@ namespace UserInterface
         private async Task StopRecording()
         {
             ToggleState(ApplicationState.Stopped);
+
             _photographer.StopCapture();
             await _photographer.WaitEnd();
             RecordingMetadata metadata = _photographer.Metadata;
@@ -106,28 +108,25 @@ namespace UserInterface
                     numRoom.Enabled = false;
                     btnStart.Enabled = false;
                     btnStop.Enabled = true;
+                    _isRecording = true;
                     break;
                 case ApplicationState.Stopped:
                 default:
                     numRoom.Enabled = true;
                     btnStart.Enabled = true;
                     btnStop.Enabled = false;
+                    _isRecording = false;
                     break;
             }
         }
 
         private void ShowImage(Image image)
         {
-            Bitmap imageBitmap;
+            Bitmap imageBitmap = new Bitmap(image);
 
             if(Settings.Default.IsDemo)
             {
-                imageBitmap = new Bitmap(image);
                 DrawDetectedObjects(ref imageBitmap);
-            }
-            else
-            {
-                imageBitmap = new Bitmap(image);
             }
             
             imgCapture.Image = imageBitmap;
@@ -135,12 +134,21 @@ namespace UserInterface
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            if (_isRecording)
+            {
+                MessageBox.Show(Constantes.IsRecordingMessage);
+                return;
+            }
+
             Settings.Default.Interval = (int)numInterval.Value;
             Settings.Default.NeuralNet = selNeuralNet.SelectedIndex;
             Settings.Default.IsDemo = ckbDemo.Checked;
+            Settings.Default.SuperiorThreshold = (int)numSuperiorThreshold.Value;
+            Settings.Default.InferiorThreshold = (int)numInferiorThreshold.Value;
             Settings.Default.Save();
 
             Supervisor.NeuralNetwork = (NeuralNetworkType)selNeuralNet.SelectedIndex;
+            Supervisor.InferiorThreshold = (int)numInferiorThreshold.Value;
         }
 
         private void numRoom2_ValueChanged(object sender, EventArgs e)
@@ -162,7 +170,7 @@ namespace UserInterface
         {
             if (!RoomIsValid())
             {
-                DisplayValidationMessage();
+                DisplayValidationMessage(Constantes.InvalidRoomMessage);
             }
 
             lisView.Items.Clear();
@@ -388,7 +396,7 @@ namespace UserInterface
                     break;
             }
          
-            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Settings.Default.Threshold);
+            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Settings.Default.InferiorThreshold);
 
             foreach (Prediction prediction in predictionResult.Predictions)
             {
@@ -404,14 +412,19 @@ namespace UserInterface
 
         public void DrawObject(ref Bitmap bitmap, RectangleF rectangleF, string objectName, double probability)
         {
+            bool isDetected = probability >= (double)(numSuperiorThreshold.Value/100);
+
+            Color color = isDetected ? Color.DarkGreen : Color.Yellow;
+            string name = isDetected ? objectName : "Desconhecido";
+
             using (Graphics g = Graphics.FromImage(bitmap))
-            using (Pen pen = new Pen(Color.Red, 2))
+            using (Pen pen = new Pen(color, 2))
             using (Font font = new Font("Arial", 16, FontStyle.Bold))
             using (Brush brush = new SolidBrush(Color.Yellow))
             {
                 g.DrawRectangle(pen, rectangleF);
 
-                string text = $"{objectName} - {probability * 100:0.00}%";
+                string text = $"{name} - {probability * 100:0.00}%";
                 g.DrawString(text, font, brush, new PointF(rectangleF.Left, rectangleF.Top - 30));
             }
         }
