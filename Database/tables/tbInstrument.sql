@@ -1,5 +1,0 @@
-﻿CREATE TABLE [dbo].[tbInstrument]
-(
-	[ITM_Id] INT NOT NULL PRIMARY KEY IDENTITY, 
-    [ITM_Name] VARCHAR(200) NULL
-)
