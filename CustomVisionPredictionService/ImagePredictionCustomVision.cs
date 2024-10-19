@@ -74,14 +74,16 @@ namespace CustomVisionPredictionService
                 Predictions = new List<Prediction>()
             };
 
-            for(int cont = 0; cont < resultados.PredictedLabels.Length; cont ++)
+            int length = resultados?.PredictedLabels?.Length ?? 0;
+
+            for(int i = 0; i < length; i ++)
             {
-                string name = _labels[resultados.PredictedLabels[cont]];
-                double probability = resultados.Scores[cont];
-                double left = resultados.BoundingBoxes[cont * 4];
-                double top = resultados.BoundingBoxes[(cont * 4) + 1];
-                double right = resultados.BoundingBoxes[(cont * 4) + 2];
-                double bottom = resultados.BoundingBoxes[(cont * 4) + 3];
+                string name = _labels[resultados.PredictedLabels[i]];
+                double probability = resultados.Scores[i];
+                double left = resultados.BoundingBoxes[i * 4];
+                double top = resultados.BoundingBoxes[(i * 4) + 1];
+                double right = resultados.BoundingBoxes[(i * 4) + 2];
+                double bottom = resultados.BoundingBoxes[(i * 4) + 3];
                 double height = Math.Abs(top - bottom);
                 double width = Math.Abs(right - left);
 

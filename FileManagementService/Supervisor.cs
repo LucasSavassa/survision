@@ -25,7 +25,7 @@ namespace FileManagementService
         public static string ProcessedPath => Path.Combine(RootPath, "Processed");
         public static string GalleryPath => Path.Combine(RootPath, "Gallery");
         public static string BinPath => Path.Combine(RootPath, "Bin");
-        public static NeuralNetworkType NeuralNetwork { get; set; } = NeuralNetworkType.Yolo;
+        public static NeuralNetworkType NeuralNetwork { get; set; } = NeuralNetworkType.CustomVision;
         public static int InferiorThreshold { get; set; } = 50;
         public static int SuperiorThreshold { get; set; } = 85;
 
