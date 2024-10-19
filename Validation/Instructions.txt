@@ -1,0 +1,23 @@
+1: Clone/Pull da última versão no github
+2: Escolher uma pasta ("Min chaos", Mid chaos" ou "Max chaos")
+3: Abrir a planilha "Results" dentro da pasta escolhida
+4: Para cada pasta de cirurgia dentro:
+	4.1: Adicionar nova aba na planilha
+	4.2: Renomear nova aba com o nome da pasta de cirurgia 
+	4.3: Para cada imagem dentro da pasta de cirurgia:
+		4.3.1: Adicionar linha
+		4.3.2: Preencher primeira coluna com o nome da imagem
+		4.3.3: Para cada material, contar quantidade de verdadeiros positivos, falsos positivos e falsos negativos
+		4.3.4: Preencher as colunas com as quantidades contadas
+5: !Antes de encerrar, não esquecer de fazer Push no github!
+
+===
+
+Definição de verdadeiros positivos, falsos positivos e falsos negativos
+
+Material de exemplo: parafusos
+
+O que é um positivo? Qualquer parafuso identificado na imagem
+O que é um verdadeiro positivo: Um parafuso identificado pela IA que realmente é um parafuso
+O que é um falso positivo: Um parafuso identificado pela IA que não é um parafuso
+O que é um falso negativo: Um parafuso na imagem que não foi identificado pela IA
