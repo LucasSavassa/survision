@@ -1,8 +1,13 @@
 ﻿using Comuns.Classes;
 using Comuns.Enums;
 using Comuns.Interfaces;
+using CustomVisionPredictionService;
+using SkiaSharp;
+using System.Drawing;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using YoloPredictionService;
 
 namespace FileManagementService
 {
@@ -22,6 +27,7 @@ namespace FileManagementService
         public static string BinPath => Path.Combine(RootPath, "Bin");
         public static NeuralNetworkType NeuralNetwork { get; set; } = NeuralNetworkType.Yolo;
         public static int InferiorThreshold { get; set; } = 50;
+        public static int SuperiorThreshold { get; set; } = 85;
 
         protected int Delay 
         {
@@ -168,6 +174,24 @@ namespace FileManagementService
             }
 
             return Directory.EnumerateFiles(path);
+        }
+
+        protected static IPredictionService GetPredictionService()
+        {
+            switch (NeuralNetwork)
+            {
+                case NeuralNetworkType.CustomVision:
+                    return new ImagePredictionCustomVision();
+                case NeuralNetworkType.Yolo:
+                default:
+                    return new ImagePredictionYolo();
+            }
+        }
+
+        public static IPredictionResult GetPredictionResult(Bitmap image)
+        {
+            IPredictionService predictionService = GetPredictionService();
+            return predictionService.GetImageResults(image, InferiorThreshold);
         }
 
         protected void DiscardEntry(string entry, string destFolderName = "")

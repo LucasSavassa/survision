@@ -1,6 +1,7 @@
 using Comuns.Classes;
 using Comuns.Enums;
 using Comuns.Interfaces;
+using Comuns.Services;
 using FileManagementService;
 using PhotographService;
 using System.IO.Compression;
@@ -41,6 +42,8 @@ namespace UserInterface
             selNeuralNet.SelectedIndex = Settings.Default.NeuralNet;
             Supervisor.NeuralNetwork = (NeuralNetworkType)Settings.Default.NeuralNet;
             ckbDemo.Checked = Settings.Default.IsDemo;
+            numInferiorThreshold.Value = Settings.Default.InferiorThreshold;
+            numSuperiorThreshold.Value = Settings.Default.SuperiorThreshold;
             Supervisor.InferiorThreshold = Settings.Default.InferiorThreshold;
             numSuperiorThreshold.Value = Settings.Default.SuperiorThreshold;
         }
@@ -122,14 +125,15 @@ namespace UserInterface
 
         private void ShowImage(Image image)
         {
-            Bitmap imageBitmap = new Bitmap(image);
+            Bitmap bitmap = new Bitmap(image);
 
             if(Settings.Default.IsDemo)
             {
-                DrawDetectedObjects(ref imageBitmap);
+                IPredictionResult predictionResult = Supervisor.GetPredictionResult(bitmap);
+                DrawService.DrawDetectedObjects(bitmap, predictionResult, (double)numInferiorThreshold.Value);
             }
             
-            imgCapture.Image = imageBitmap;
+            imgCapture.Image = bitmap;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -379,53 +383,6 @@ namespace UserInterface
                         }
                     }
                 }
-            }
-        }
-
-        private void DrawDetectedObjects(ref Bitmap bitmap)
-        {
-            IPredictionService predictionService;
-            
-            switch((NeuralNetworkType)Settings.Default.NeuralNet)
-            {
-                case NeuralNetworkType.Yolo:
-                    predictionService = new ImagePredictionYolo();
-                    break;
-                default:
-                    predictionService = new ImagePredictionYolo();
-                    break;
-            }
-         
-            IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, Settings.Default.InferiorThreshold);
-
-            foreach (Prediction prediction in predictionResult.Predictions)
-            {
-                float left = (float)prediction.Left * bitmap.Width;
-                float top = (float)prediction.Top * bitmap.Height;
-                float width = (float)prediction.Width * bitmap.Width;
-                float height = (float)prediction.Height * bitmap.Height;
-
-                RectangleF rectangleF = new(left, top, width, height);
-                DrawObject(ref bitmap, rectangleF, prediction.Name, prediction.Probability);
-            }
-        }
-
-        public void DrawObject(ref Bitmap bitmap, RectangleF rectangleF, string objectName, double probability)
-        {
-            bool isDetected = probability >= (double)(numSuperiorThreshold.Value/100);
-
-            Color color = isDetected ? Color.DarkGreen : Color.Yellow;
-            string name = isDetected ? objectName : "Desconhecido";
-
-            using (Graphics g = Graphics.FromImage(bitmap))
-            using (Pen pen = new Pen(color, 2))
-            using (Font font = new Font("Arial", 16, FontStyle.Bold))
-            using (Brush brush = new SolidBrush(Color.Yellow))
-            {
-                g.DrawRectangle(pen, rectangleF);
-
-                string text = $"{name} - {probability * 100:0.00}%";
-                g.DrawString(text, font, brush, new PointF(rectangleF.Left, rectangleF.Top - 30));
             }
         }
     }

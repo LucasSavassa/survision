@@ -1,9 +1,11 @@
 ﻿using Comuns.Classes;
 using Comuns.Enums;
 using Comuns.Interfaces;
+using Comuns.Services;
 using CustomVisionPredictionService;
 using FileHandler.Services;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -121,12 +123,17 @@ namespace FileManagementService
 
                         uint second = hours * 3600 + minutes * 60 + seconds;
 
-                        using (Bitmap bitmap = new(file))
+                        using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.ReadWrite))
+                        using (Image image = Image.FromStream(stream))
+                        using (Bitmap bitmap = new Bitmap(image))
                         {
                             IPredictionService predictionService = GetPredictionService();
                             IPredictionResult predictionResult = predictionService.GetImageResults(bitmap, InferiorThreshold);
+                            stream.Close();
                             PictureResult pictureResult = new() { Second = second, Detections = predictionResult.Predictions };
                             surgeryResult.Timeline.Add(pictureResult);
+                            DrawService.DrawDetectedObjects(bitmap, predictionResult, InferiorThreshold);
+                            bitmap.Save(file, ImageFormat.Jpeg);
                         }
 
                         File.Move(file, Path.Combine(tempDestination, fileName));
@@ -159,18 +166,6 @@ namespace FileManagementService
                     Thread.Sleep(50);
                     if (i == 9) throw;
                 }
-            }
-        }
-
-        private IPredictionService GetPredictionService()
-        {
-            switch (NeuralNetwork)
-            {
-                case NeuralNetworkType.CustomVision:
-                    return new ImagePredictionCustomVision();
-                case NeuralNetworkType.Yolo:
-                default:
-                    return new ImagePredictionYolo();
             }
         }
 
