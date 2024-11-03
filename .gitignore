@@ -398,3 +398,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /Teste
+/Validation/helpers
+/Validation/Images/Max_Chaos/*.txt
+/Validation/Images/Mid_Chaos/*.txt
+/Validation/Images/Min_Chaos/*.txt
+/Validation/Images
