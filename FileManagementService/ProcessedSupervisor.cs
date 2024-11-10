@@ -1,6 +1,7 @@
 ﻿using Comuns.Classes;
 using Comuns.Interfaces;
 using FileHandler.Services;
+using FileManagementService.Services;
 using System.IO.Compression;
 using System.Text.Json;
 
@@ -49,7 +50,7 @@ namespace FileManagementService
             Trim(entry);
             DateTime surgeryDay = Validator.GetSurgeryDateFromFolderName(entry);
             int room = Validator.GetSurgeryRoomFromFolderName(entry);
-            MoveToGallery(entry, room, surgeryDay);
+            Librarian.MoveToGallery(entry, room, surgeryDay, GalleryPath);
         }
 
         private bool ShouldSkip(string entry)

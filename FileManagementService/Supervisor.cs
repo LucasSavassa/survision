@@ -2,6 +2,7 @@
 using Comuns.Enums;
 using Comuns.Interfaces;
 using CustomVisionPredictionService;
+using FileManagementService.Services;
 using SkiaSharp;
 using System.Drawing;
 using System.IO.Compression;
@@ -91,71 +92,6 @@ namespace FileManagementService
 
                 HandleException();
             }
-        }
-
-        public static string CreateTemporaryFolder(int room, DateTime start)
-        {
-            string path = CreateFolder(room, start);
-            CreateMetadata(room, start, path);
-            return path;
-        }
-
-        private static string CreateFolder(int room, DateTime start)
-        {
-            string path = Path.Combine(RootPath, $"surgery-{room}-{start:yyyyMMddHHmmss}");
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
-        private static void CreateMetadata(int room, DateTime start, string path)
-        {
-            Surgery surgery = new Surgery
-            {
-                Room = room,
-                Start = start
-            };
-
-            string json = JsonSerializer.Serialize(surgery);
-            string filePath = Path.Combine(path, "metadata.json");
-            File.WriteAllText(filePath, json);
-        }
-
-        public static void UpdateMetadata(string path, int shots, int seconds)
-        {
-            string json = File.ReadAllText(path);
-            Surgery? surgery = JsonSerializer.Deserialize<Surgery>(json);
-            if (surgery is null) return;
-            surgery.Shots = (uint)shots;
-            surgery.Seconds = (uint)seconds;
-            json = JsonSerializer.Serialize(surgery);
-            File.WriteAllText(path, json);
-        }
-
-        public static string ZipFolder(string path)
-        {
-            string name = Path.GetFileName(path);
-            string directory = Path.GetDirectoryName(path) ?? ""; 
-            string destination = Path.Combine(directory, $"{name}.zip");
-            ZipFile.CreateFromDirectory(path, destination);
-            Directory.Delete(path, true);
-            return destination;
-        }
-
-        public static void MoveToQueue(string path)
-        {
-            string name = Path.GetFileName(path);
-            string destination = Path.Combine(QueuePath, name);
-            Directory.Move(path, destination);
-        }
-
-        protected void MoveToGallery(string entry, int room, DateTime date)
-        {
-            string zipped = ZipFolder(entry);
-            string name = Path.GetFileName(zipped);
-            string destinationFolder = Path.Combine(GalleryPath, $"{room}", $"{date.Year}", $"{date.Month}", $"{date.Day}");
-            Directory.CreateDirectory(destinationFolder);
-            string destination = Path.Combine(destinationFolder, name);
-            Directory.Move(zipped, destination);
         }
 
         public static IEnumerable<string> GetSurgeriesAtGallery(int room, DateTime date)

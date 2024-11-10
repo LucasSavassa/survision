@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace FileHandler.Services
 {
-    internal static class Validator
+    public static class Validator
     {
         private const string _folderNamePattern = @"\bsurgery-(?<room>[0-9]{1,11})-(?<start>[0-9]{14})\b";
         private const string _imageFileNamePattern = @"\b(?<hours>[0-9]{2})-(?<minutes>[0-9]{2})-(?<seconds>[0-9]{2})\b";

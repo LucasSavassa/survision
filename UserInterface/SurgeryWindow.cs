@@ -3,6 +3,7 @@ using Comuns.Enums;
 using Comuns.Interfaces;
 using Comuns.Services;
 using FileManagementService;
+using FileManagementService.Services;
 using PhotographService;
 using System.IO.Compression;
 using System.Text;
@@ -100,7 +101,7 @@ namespace UserInterface
             int room = (int)numRoom.Value;
             DateTime start = DateTime.Now;
             int interval = (int)numInterval.Value;
-            _tempPath = Supervisor.CreateTemporaryFolder(room, start);
+            _tempPath = Librarian.CreateSurgeryFolder(Supervisor.RootPath, room, start);
 
             _photographer.StartCapture(_tempPath, interval, ShowImage);
         }
@@ -119,9 +120,9 @@ namespace UserInterface
             }
 
             string metadataPath = Path.Combine(_tempPath, "metadata.json");
-            Supervisor.UpdateMetadata(metadataPath, metadata.Shots, metadata.Seconds);
-            string newPath = Supervisor.ZipFolder(_tempPath);
-            Supervisor.MoveToQueue(newPath);
+            Librarian.UpdateMetadata(metadataPath, metadata.Shots, metadata.Seconds);
+            string newPath = Librarian.ZipFolder(_tempPath);
+            Librarian.MoveToQueue(newPath, Supervisor.QueuePath);
         }
 
         private void ToggleState(ApplicationState state)
@@ -281,7 +282,7 @@ namespace UserInterface
                         return;
                     }
 
-                    string summary = SummarizeSurgeryResult(surgeryResult);
+                    string summary = Librarian.SummarizeSurgeryResult(surgeryResult);
 
                     saveFileDialog1.Filter = "Text files (*.txt)|*.txt";
                     saveFileDialog1.FileName = Path.GetFileName(results.FullName);
@@ -296,76 +297,6 @@ namespace UserInterface
                         }
                     }
                 }
-            }
-        }
-
-        private string SummarizeSurgeryResult(SurgeryResult surgeryResult)
-        {
-            StringBuilder summary = new StringBuilder();
-            summary.AppendLine("Descrição da cirurgia");
-            summary.AppendLine($"Sala: {surgeryResult.Surgery.Room}");
-            summary.AppendLine($"Início: {surgeryResult.Surgery.Start}");
-            summary.AppendLine($"Duração: {surgeryResult.Surgery.Seconds} segundos");
-            summary.AppendLine($"Fotos: {surgeryResult.Surgery.Shots}");
-            summary.AppendLine("");
-            summary.AppendLine("Materiais detectados no início:");
-
-            PictureResult firstPicture = surgeryResult.Timeline.First();
-            IEnumerable<(string, int)> firstGrouping = new List<(string, int)>();
-            if (firstPicture is not null)
-            {
-                ICollection<Prediction> detections = firstPicture.Detections;
-                if (detections.Count() > 0)
-                {
-                    firstGrouping = detections.GroupBy(detection => detection.Name).Select(group => (group.First().Name, group.Count()));
-                    foreach ((string name, int count) in firstGrouping)
-                    {
-                        summary.AppendLine($"{name}: ({count})");
-                    }
-                }
-            }
-
-            summary.AppendLine("");
-            summary.AppendLine("Materiais detectados no final:");
-            PictureResult lastPicture = surgeryResult.Timeline.Last();
-            IEnumerable<(string, int)> lastGrouping = new List<(string, int)>();
-            if (lastPicture is not null)
-            {
-                ICollection<Prediction> detections = lastPicture.Detections;
-                if (detections.Count() > 0)
-                {
-                    lastGrouping = detections.GroupBy(detection => detection.Name).Select(group => (group.First().Name, group.Count()));
-                    foreach ((string name, int count) in lastGrouping)
-                    {
-                        summary.AppendLine($"{name}: ({count})");
-                    }
-                }
-            }
-
-            summary.AppendLine("");
-            summary.AppendLine("Diferença:");
-            IEnumerable<(string, int)> delta = CalculateDelta(firstGrouping, lastGrouping);
-            foreach ((string name, int count) in delta)
-            {
-                if (count < 0)
-                {
-                    summary.AppendLine($"{count} {name} adicionados na bandeja.");
-                }
-                else
-                {
-                    summary.AppendLine($"{count} {name} removidos da bandeja.");
-                }
-            }
-
-            return summary.ToString();
-        }
-
-        private IEnumerable<(string, int)> CalculateDelta(IEnumerable<(string, int)> firstGrouping, IEnumerable<(string, int)> lastGrouping)
-        {
-            foreach ((string name, int count) in firstGrouping)
-            {
-                int delta = lastGrouping.FirstOrDefault(x => x.Item1 == name).Item2 - count;
-                yield return (name, delta);
             }
         }
 
