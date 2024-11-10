@@ -10,35 +10,50 @@ using DirectShowLib;
 using System.Drawing.Imaging;
 using Emgu.CV.Dai;
 using System.Timers;
+using Comuns.Interfaces;
+using Comuns.Classes;
+using System.Runtime.InteropServices;
+using System.Runtime.ExceptionServices;
 
 namespace PhotographService
 {
     public class Photographer : IDisposable
     {
-        private VideoCapture _captureDevice;
-        private Mat _frame;
+        private VideoCapture? _captureDevice;
+        private Mat? _frame;
         private bool _isDisposing = false;
+        private int threadCount = 0;
 
         public delegate void ShowCapture(Image image);
 
         public bool IsCapturing { get; private set; }
         public bool Ended { get; private set; }
-        public RecordingMetadata Metadata { get; private set; }
+        public RecordingMetadata? Metadata { get; private set; }
 
-        public Photographer(string cameraName = "HD Pro Webcam C920", int desiredWidth = 960, int desiredHeight = 720)
+        public Photographer()
         {
-            LoadCamera(cameraName, desiredWidth, desiredHeight);
+
         }
 
-        private void LoadCamera(string name, int width, int height)
+        public IResult LoadCamera(string name, int width, int height)
         {
             var devices = new List<DsDevice>(DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice));
 
-            DsDevice? device = devices.FirstOrDefault(x => x.Name == name);
-            device ??= devices.FirstOrDefault();
+            DsDevice? device = null;
+
+            if (string.IsNullOrEmpty(name))
+            {
+                device = devices.FirstOrDefault();
+            }
+            else
+            {
+                device = devices.FirstOrDefault(x => x.Name == name);
+            }
 
             if (device == null)
-                throw new Exception("Web Cam not found");
+            {
+                return Result.Failed("Nenhuma câmera foi encontrada.");
+            }
 
             int index = devices.IndexOf(device);
             _captureDevice = new VideoCapture(index, VideoCapture.API.DShow);
@@ -46,20 +61,75 @@ namespace PhotographService
             _captureDevice.Set(CapProp.FrameHeight, height);
 
             if (!_captureDevice.IsOpened)
-                throw new Exception("It's not possible to open the Web Cam");
+            {
+                return Result.Failed("A câmera não está disponível. Verifique se ela está sendo usada por outro aplicativo.");
+            }
 
             _frame = new Mat();
 
-            Task.Run(GetFrames);
+            return Result.Successfull;
         }
 
-        private void GetFrames()
+        public void StartGettingFrames()
         {
+            if (threadCount == 0) // Only start the thread if it's the first one
+            {
+                Task.Run(() => GetFrames());
+            }
+        }
+
+        public bool IsCameraWorking()
+        {
+            Thread.Sleep(300); // Wait for the first frame to be captured
+
+            if (_captureDevice == null || _frame == null)
+                return false;
+
+            if (!_captureDevice.Grab())
+                return false;
+
+            Bitmap bitmap = _frame.ToBitmap();
+
+            if (bitmap == null)
+                return false;
+
+            BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+
+            byte[] rgba = new byte[data.Stride * data.Height];
+            Marshal.Copy(data.Scan0, rgba, 0, rgba.Length);
+
+            bool allBlack = true;
+            for (int i = 0; i < rgba.Length; i++)
+            {
+                if ((i + 1) % 4 == 0) continue; // Skip alpha channel
+                if (rgba[i] != 0)
+                {
+                    allBlack = false;
+                    break;
+                }
+            }
+
+            bitmap.UnlockBits(data);
+
+            if (allBlack)
+                return false;
+
+            return true;
+        }
+
+        private unsafe void GetFrames()
+        {
+            threadCount++;
+
+            _isDisposing = false;
             while (!_isDisposing)
             {
-                _captureDevice.Read(_frame);
+                _captureDevice?.Read(_frame);
+
                 Thread.Sleep(100);
             }
+            
+            threadCount--;
         }
 
         public void StartCapture(string storagePath, int interval, ShowCapture func)
@@ -72,9 +142,10 @@ namespace PhotographService
             }
         }
 
-        public void StopCapture()
+        public async Task StopCaptureAsync()
         {
             IsCapturing = false;
+            await WaitEnd();
         }
 
         private void CapturePhotos(string storagePath, int interval, ShowCapture func)
@@ -100,13 +171,13 @@ namespace PhotographService
                 Thread.Sleep(interval * 1000);
             }
 
-            this.Ended = true;
             this.Metadata = new RecordingMetadata(start, shots, elapsed);
+            this.Ended = true;
         }
 
         public bool CapturePhoto(string storagePath, ShowCapture func)
         {
-            if (_frame.IsEmpty)
+            if (_frame is null || _frame.IsEmpty)
                 return false;
 
             using (Image image = _frame.ToBitmap())
@@ -127,19 +198,20 @@ namespace PhotographService
             return $"{hours:D2}-{minutes:D2}-{seconds:D2}.jpg";
         }
 
-        public void Dispose()
-        {
-            _isDisposing = true;
-            _captureDevice.Dispose();
-            _frame.Dispose();
-        }
-
         public async Task WaitEnd()
         {
             while (!Ended)
             {
                 await Task.Delay(100);
             }
+        }
+
+        public void Dispose()
+        {
+            _isDisposing = true;
+
+            _captureDevice.Dispose();
+            _frame.Dispose();
         }
     }
 }

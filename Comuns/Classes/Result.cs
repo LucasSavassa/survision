@@ -21,5 +21,8 @@ namespace Comuns.Classes
         public ICollection<string> Messages { get; set; } = [];
 
         public static Result Successfull => new(true, null, []);
+        public static Result Failed(Exception exception, ICollection<string> messages) => new(false, exception, messages);
+        public static Result Failed(Exception exception, string message) => new(false, exception, new List<string> { message });
+        public static Result Failed(string message) => new(false, null, new List<string> { message });
     }
 }

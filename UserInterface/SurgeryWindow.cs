@@ -17,7 +17,7 @@ namespace UserInterface
     public partial class SurgeryWindow : Form
     {
         private uint _room = 0;
-        private Photographer? _photographer;
+        private Photographer _photographer = new Photographer();
         private string _tempPath = string.Empty;
         private bool _isRecording = false;
 
@@ -30,9 +30,20 @@ namespace UserInterface
 
         private void SurgeryWindow_Load(object sender, EventArgs e)
         {
-            _photographer = new Photographer();
+            LoadPhotographService();
             ApplySettings();
             UpdateListView();
+        }
+
+        private void LoadPhotographService()
+        {
+            IResult result = _photographer.LoadCamera(string.Empty, 960, 720);
+            if (!result.Success)
+            {
+                MessageBox.Show(result.Messages.First());
+                return;
+            }
+            _photographer.StartGettingFrames();
         }
 
         private void ApplySettings()
@@ -50,6 +61,12 @@ namespace UserInterface
 
         public void btnStart_Click(object sender, EventArgs e)
         {
+            if (!_photographer.IsCameraWorking())
+            {
+                MessageBox.Show("Não foi possível capturar uma imagem. Se a câmera estiver sendo usada por outro aplicativo, encerre ele, e depois reinicie o Survision.AI.\n");
+                return;
+            }
+
             if (!RoomIsValid())
             {
                 DisplayValidationMessage(Constantes.InvalidRoomMessage);
@@ -90,11 +107,17 @@ namespace UserInterface
 
         private async Task StopRecording()
         {
+            await _photographer.StopCaptureAsync();
+
             ToggleState(ApplicationState.Stopped);
 
-            _photographer.StopCapture();
-            await _photographer.WaitEnd();
-            RecordingMetadata metadata = _photographer.Metadata;
+            RecordingMetadata? metadata = _photographer.Metadata;
+            if (metadata is null)
+            {
+                MessageBox.Show("A captura foi interrompida, porém os metadados não foram gerados.");
+                return;
+            }
+
             string metadataPath = Path.Combine(_tempPath, "metadata.json");
             Supervisor.UpdateMetadata(metadataPath, metadata.Shots, metadata.Seconds);
             string newPath = Supervisor.ZipFolder(_tempPath);
