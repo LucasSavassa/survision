@@ -38,7 +38,7 @@ namespace UserInterface
 
         private void LoadPhotographService()
         {
-            IResult result = _photographer.LoadCamera(string.Empty, 960, 720);
+            IResult result = _photographer.LoadCamera("HD Pro Webcam C920", 960, 720);
             if (!result.Success)
             {
                 MessageBox.Show(result.Messages.First());
