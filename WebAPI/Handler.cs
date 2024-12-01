@@ -31,13 +31,6 @@ namespace WebAPI
             return GetSurgeryJson(room, year, month, day, hour, minute, second);
         }
 
-        public static SurgeryResult? GetSurgeryJson(int room, int year, int month, int day, int hour, int minute, int second)
-        {
-            SurgeryResult? surgery = Librarian.GetSurgery(room, year, month, day, hour, minute, second);
-
-            return surgery;
-        }
-
         public static IEnumerable<SurgeryResult?> GetSurgeryJson(int room, int year, int month, int day)
         {
             string[] pathes = Librarian.ListSurgeriesAtGallery(room, year, month, day);
@@ -50,6 +43,13 @@ namespace WebAPI
             }
         }
 
+        private static SurgeryResult? GetSurgeryJson(int room, int year, int month, int day, int hour, int minute, int second)
+        {
+            SurgeryResult? surgery = Librarian.GetSurgery(room, year, month, day, hour, minute, second);
+
+            return surgery;
+        }
+
         public static IDictionary<string, int>? GetSurgeryUsage(string surgeryName)
         {
             SurgeryResult? surgery = GetSurgeryJson(surgeryName);
@@ -60,6 +60,31 @@ namespace WebAPI
             }
 
             return Librarian.GetSurgeryUsage(surgery);
+        }
+
+        internal static IEnumerable<IDictionary<string, int>>? GetSurgeryUsage(int room, int year, int month, int day)
+        {
+            string[] pathes = Librarian.ListSurgeriesAtGallery(room, year, month, day);
+
+            foreach (string path in pathes)
+            {
+                string filename = Path.GetFileName(path);
+                SurgeryResult? surgery = GetSurgeryJson(filename);
+
+                if (surgery == null)
+                {
+                    continue;
+                }
+
+                IDictionary<string, int>? usage = Librarian.GetSurgeryUsage(surgery);
+
+                if (usage == null)
+                {
+                    continue;
+                }
+
+                yield return usage;
+            }
         }
 
         public static IDictionary<string, int>? GetSurgeryUsage(int room, int year, int month, int day, int hour, int minute, int second)

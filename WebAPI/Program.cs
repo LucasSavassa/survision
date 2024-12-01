@@ -13,19 +13,12 @@ namespace WebAPI
 
             app.MapGet("/surgery/{surgeryName}", (string surgeryName) =>
             {
-                SurgeryResult? surgery = Handler.GetSurgeryJson(surgeryName);
-
-                if (surgery == null)
+                if (string.IsNullOrWhiteSpace(surgeryName))
                 {
-                    return Results.NotFound();
+                    return Results.BadRequest();
                 }
 
-                return Results.Ok(surgery);
-            });
-
-            app.MapGet("/surgery/{room}/{year}/{month}/{day}/{hour}/{minute}/{second}", (int room, int year, int month, int day, int hour, int minute, int second) =>
-            {
-                SurgeryResult? surgery = Handler.GetSurgeryJson(room, year, month, day, hour, minute, second);
+                SurgeryResult? surgery = Handler.GetSurgeryJson(surgeryName);
 
                 if (surgery == null)
                 {
@@ -37,6 +30,11 @@ namespace WebAPI
 
             app.MapGet("/surgery/{room}/{year}/{month}/{day}", (int room, int year, int month, int day) =>
             {
+                if (room <= 0 || year <= 0 || month <= 0 || day <= 0)
+                {
+                    return Results.BadRequest();
+                }
+
                 IEnumerable<SurgeryResult?> surgeries = Handler.GetSurgeryJson(room, year, month, day);
 
                 if (surgeries == null)
@@ -49,6 +47,11 @@ namespace WebAPI
 
             app.MapGet("/surgery/usage/{surgeryName}", (string surgeryName) =>
             {
+                if (string.IsNullOrWhiteSpace(surgeryName))
+                {
+                    return Results.BadRequest();
+                }
+
                 IDictionary<string, int>? usage = Handler.GetSurgeryUsage(surgeryName);
 
                 if (usage == null)
@@ -59,9 +62,14 @@ namespace WebAPI
                 return Results.Ok(usage);
             });
 
-            app.MapGet("/surgery/usage/{room}/{year}/{month}/{day}/{hour}/{minute}/{second}", (int room, int year, int month, int day, int hour, int minute, int second) =>
+            app.MapGet("/surgery/usage/{room}/{year}/{month}/{day}", (int room, int year, int month, int day) =>
             {
-                IDictionary<string, int>? usages = Handler.GetSurgeryUsage(room, year, month, day, hour, minute, second);
+                if (room <= 0 || year <= 0 || month <= 0 || day <= 0)
+                {
+                    return Results.BadRequest();
+                }
+
+                IEnumerable<IDictionary<string, int>>? usages = Handler.GetSurgeryUsage(room, year, month, day);
 
                 if (usages == null)
                 {

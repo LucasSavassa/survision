@@ -245,7 +245,7 @@ namespace FileManagementService.Services
                                                          .ToDictionary();
             foreach((string name, int count) in both)
             {
-                result.Add(name, count - lastGrouping[name]);
+                result.Add(name, lastGrouping[name] - count);
             }
 
             return result;
