@@ -29,6 +29,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SurgeryWindow));
             tab = new TabControl();
             tabRecord = new TabPage();
             numRoom = new NumericUpDown();
@@ -79,10 +80,12 @@
             tab.Controls.Add(tabRecord);
             tab.Controls.Add(tabRecordings);
             tab.Controls.Add(tabOptions);
-            tab.Location = new Point(12, 12);
+            tab.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            tab.Location = new Point(10, 9);
+            tab.Margin = new Padding(3, 2, 3, 2);
             tab.Name = "tab";
             tab.SelectedIndex = 0;
-            tab.Size = new Size(758, 429);
+            tab.Size = new Size(1144, 671);
             tab.TabIndex = 0;
             // 
             // tabRecord
@@ -92,21 +95,24 @@
             tabRecord.Controls.Add(btnStop);
             tabRecord.Controls.Add(btnStart);
             tabRecord.Controls.Add(lblRoom);
-            tabRecord.Location = new Point(4, 29);
+            tabRecord.Location = new Point(4, 30);
+            tabRecord.Margin = new Padding(3, 2, 3, 2);
             tabRecord.Name = "tabRecord";
-            tabRecord.Padding = new Padding(3);
-            tabRecord.Size = new Size(750, 396);
+            tabRecord.Padding = new Padding(3, 2, 3, 2);
+            tabRecord.Size = new Size(1136, 637);
             tabRecord.TabIndex = 0;
             tabRecord.Text = "Gravar";
             tabRecord.UseVisualStyleBackColor = true;
             // 
             // numRoom
             // 
-            numRoom.Location = new Point(6, 26);
+            numRoom.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            numRoom.Location = new Point(5, 36);
+            numRoom.Margin = new Padding(3, 2, 3, 2);
             numRoom.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
             numRoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numRoom.Name = "numRoom";
-            numRoom.Size = new Size(125, 27);
+            numRoom.Size = new Size(150, 35);
             numRoom.TabIndex = 5;
             numRoom.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
@@ -114,9 +120,10 @@
             // 
             imgCapture.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             imgCapture.BackColor = Color.DarkGray;
-            imgCapture.Location = new Point(137, 6);
+            imgCapture.Location = new Point(161, 4);
+            imgCapture.Margin = new Padding(3, 2, 3, 2);
             imgCapture.Name = "imgCapture";
-            imgCapture.Size = new Size(607, 384);
+            imgCapture.Size = new Size(971, 631);
             imgCapture.SizeMode = PictureBoxSizeMode.Zoom;
             imgCapture.TabIndex = 4;
             imgCapture.TabStop = false;
@@ -125,9 +132,11 @@
             // 
             btnStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnStop.Enabled = false;
-            btnStop.Location = new Point(6, 361);
+            btnStop.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnStop.Location = new Point(5, 587);
+            btnStop.Margin = new Padding(3, 2, 3, 2);
             btnStop.Name = "btnStop";
-            btnStop.Size = new Size(125, 29);
+            btnStop.Size = new Size(150, 46);
             btnStop.TabIndex = 3;
             btnStop.Text = "Parar";
             btnStop.UseVisualStyleBackColor = true;
@@ -136,20 +145,24 @@
             // btnStart
             // 
             btnStart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStart.Location = new Point(6, 326);
+            btnStart.BackColor = Color.Transparent;
+            btnStart.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnStart.Location = new Point(5, 538);
+            btnStart.Margin = new Padding(3, 2, 3, 2);
             btnStart.Name = "btnStart";
-            btnStart.Size = new Size(125, 29);
+            btnStart.Size = new Size(150, 45);
             btnStart.TabIndex = 2;
             btnStart.Text = "Iniciar";
-            btnStart.UseVisualStyleBackColor = true;
+            btnStart.UseVisualStyleBackColor = false;
             btnStart.Click += btnStart_Click;
             // 
             // lblRoom
             // 
             lblRoom.AutoSize = true;
-            lblRoom.Location = new Point(3, 3);
+            lblRoom.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblRoom.Location = new Point(0, 2);
             lblRoom.Name = "lblRoom";
-            lblRoom.Size = new Size(37, 20);
+            lblRoom.Size = new Size(51, 30);
             lblRoom.TabIndex = 0;
             lblRoom.Text = "Sala";
             // 
@@ -162,10 +175,11 @@
             tabRecordings.Controls.Add(lisView);
             tabRecordings.Controls.Add(dtpDay);
             tabRecordings.Controls.Add(lblDay);
-            tabRecordings.Location = new Point(4, 29);
+            tabRecordings.Location = new Point(4, 30);
+            tabRecordings.Margin = new Padding(3, 2, 3, 2);
             tabRecordings.Name = "tabRecordings";
-            tabRecordings.Padding = new Padding(3);
-            tabRecordings.Size = new Size(750, 396);
+            tabRecordings.Padding = new Padding(3, 2, 3, 2);
+            tabRecordings.Size = new Size(1136, 637);
             tabRecordings.TabIndex = 1;
             tabRecordings.Text = "Gravações";
             tabRecordings.UseVisualStyleBackColor = true;
@@ -173,11 +187,13 @@
             // btnExportSurgeryDesc
             // 
             btnExportSurgeryDesc.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExportSurgeryDesc.Location = new Point(6, 326);
+            btnExportSurgeryDesc.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnExportSurgeryDesc.Location = new Point(6, 539);
+            btnExportSurgeryDesc.Margin = new Padding(3, 2, 3, 2);
             btnExportSurgeryDesc.Name = "btnExportSurgeryDesc";
-            btnExportSurgeryDesc.Size = new Size(125, 29);
+            btnExportSurgeryDesc.Size = new Size(149, 45);
             btnExportSurgeryDesc.TabIndex = 14;
-            btnExportSurgeryDesc.Text = "Salvar resultado";
+            btnExportSurgeryDesc.Text = "Dados resumidos";
             btnExportSurgeryDesc.TextAlign = ContentAlignment.MiddleLeft;
             btnExportSurgeryDesc.UseVisualStyleBackColor = true;
             btnExportSurgeryDesc.Click += btnExportSurgeryDesc_Click;
@@ -185,22 +201,26 @@
             // btnExportJson
             // 
             btnExportJson.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExportJson.Location = new Point(6, 361);
+            btnExportJson.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnExportJson.Location = new Point(5, 588);
+            btnExportJson.Margin = new Padding(3, 2, 3, 2);
             btnExportJson.Name = "btnExportJson";
-            btnExportJson.Size = new Size(125, 29);
+            btnExportJson.Size = new Size(150, 45);
             btnExportJson.TabIndex = 13;
-            btnExportJson.Text = "Salvar json";
+            btnExportJson.Text = "Dados completos";
             btnExportJson.TextAlign = ContentAlignment.MiddleLeft;
             btnExportJson.UseVisualStyleBackColor = true;
             btnExportJson.Click += btnExportJson_Click;
             // 
             // numRoom2
             // 
-            numRoom2.Location = new Point(6, 26);
+            numRoom2.Font = new Font("Segoe UI", 15.75F);
+            numRoom2.Location = new Point(5, 34);
+            numRoom2.Margin = new Padding(3, 2, 3, 2);
             numRoom2.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
             numRoom2.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numRoom2.Name = "numRoom2";
-            numRoom2.Size = new Size(125, 27);
+            numRoom2.Size = new Size(150, 35);
             numRoom2.TabIndex = 12;
             numRoom2.Value = new decimal(new int[] { 1, 0, 0, 0 });
             numRoom2.ValueChanged += numRoom2_ValueChanged;
@@ -208,9 +228,10 @@
             // lblRoom2
             // 
             lblRoom2.AutoSize = true;
-            lblRoom2.Location = new Point(3, 3);
+            lblRoom2.Font = new Font("Segoe UI", 15.75F);
+            lblRoom2.Location = new Point(3, 2);
             lblRoom2.Name = "lblRoom2";
-            lblRoom2.Size = new Size(37, 20);
+            lblRoom2.Size = new Size(51, 30);
             lblRoom2.TabIndex = 11;
             lblRoom2.Text = "Sala";
             // 
@@ -218,12 +239,14 @@
             // 
             lisView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lisView.Columns.AddRange(new ColumnHeader[] { colStart, colDuration, colShots, colPath });
+            lisView.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lisView.FullRowSelect = true;
-            lisView.Location = new Point(137, 3);
+            lisView.Location = new Point(161, 2);
+            lisView.Margin = new Padding(3, 2, 3, 2);
             lisView.MultiSelect = false;
             lisView.Name = "lisView";
             lisView.ShowGroups = false;
-            lisView.Size = new Size(610, 387);
+            lisView.Size = new Size(974, 634);
             lisView.TabIndex = 10;
             lisView.UseCompatibleStateImageBehavior = false;
             lisView.View = View.Details;
@@ -232,36 +255,43 @@
             // colStart
             // 
             colStart.Text = "Início";
+            colStart.Width = 120;
             // 
             // colDuration
             // 
             colDuration.Text = "Duração";
+            colDuration.Width = 120;
             // 
             // colShots
             // 
             colShots.Text = "Fotos";
+            colShots.Width = 120;
             // 
             // colPath
             // 
             colPath.Text = "Caminho";
+            colPath.Width = 360;
             // 
             // dtpDay
             // 
             dtpDay.CustomFormat = "dd/MM/yyyy";
+            dtpDay.Font = new Font("Segoe UI", 15.75F);
             dtpDay.Format = DateTimePickerFormat.Custom;
-            dtpDay.Location = new Point(6, 84);
+            dtpDay.Location = new Point(5, 115);
+            dtpDay.Margin = new Padding(3, 2, 3, 2);
             dtpDay.Name = "dtpDay";
-            dtpDay.Size = new Size(125, 27);
+            dtpDay.Size = new Size(150, 35);
             dtpDay.TabIndex = 1;
-            dtpDay.Value = new DateTime(2024, 10, 12, 9, 45, 49, 337);
+            dtpDay.Value = new DateTime(2024, 12, 2, 0, 0, 0, 0);
             dtpDay.ValueChanged += dtpDay_ValueChanged;
             // 
             // lblDay
             // 
             lblDay.AutoSize = true;
-            lblDay.Location = new Point(3, 61);
+            lblDay.Font = new Font("Segoe UI", 15.75F);
+            lblDay.Location = new Point(0, 83);
             lblDay.Name = "lblDay";
-            lblDay.Size = new Size(32, 20);
+            lblDay.Size = new Size(44, 30);
             lblDay.TabIndex = 0;
             lblDay.Text = "Dia";
             // 
@@ -278,75 +308,88 @@
             tabOptions.Controls.Add(lblNeuralNet);
             tabOptions.Controls.Add(numInterval);
             tabOptions.Controls.Add(lblInterval);
-            tabOptions.Location = new Point(4, 29);
+            tabOptions.Location = new Point(4, 30);
+            tabOptions.Margin = new Padding(3, 2, 3, 2);
             tabOptions.Name = "tabOptions";
-            tabOptions.Padding = new Padding(3);
-            tabOptions.Size = new Size(750, 396);
+            tabOptions.Padding = new Padding(3, 2, 3, 2);
+            tabOptions.Size = new Size(1136, 637);
             tabOptions.TabIndex = 2;
             tabOptions.Text = "Opções";
             tabOptions.UseVisualStyleBackColor = true;
             // 
             // numInferiorThreshold
             // 
+            numInferiorThreshold.Font = new Font("Segoe UI", 15.75F);
             numInferiorThreshold.Increment = new decimal(new int[] { 5, 0, 0, 0 });
-            numInferiorThreshold.Location = new Point(6, 210);
+            numInferiorThreshold.Location = new Point(6, 278);
+            numInferiorThreshold.Margin = new Padding(3, 2, 3, 2);
             numInferiorThreshold.Maximum = new decimal(new int[] { 75, 0, 0, 0 });
             numInferiorThreshold.Name = "numInferiorThreshold";
-            numInferiorThreshold.Size = new Size(125, 27);
+            numInferiorThreshold.Size = new Size(200, 35);
             numInferiorThreshold.TabIndex = 10;
             numInferiorThreshold.Value = new decimal(new int[] { 75, 0, 0, 0 });
             // 
             // lblInferiorThreshold
             // 
             lblInferiorThreshold.AutoSize = true;
-            lblInferiorThreshold.Location = new Point(6, 187);
+            lblInferiorThreshold.Font = new Font("Segoe UI", 15.75F);
+            lblInferiorThreshold.Location = new Point(6, 246);
             lblInferiorThreshold.Name = "lblInferiorThreshold";
-            lblInferiorThreshold.Size = new Size(102, 20);
+            lblInferiorThreshold.Size = new Size(141, 30);
             lblInferiorThreshold.TabIndex = 9;
             lblInferiorThreshold.Text = "Limite inferior";
             // 
             // numSuperiorThreshold
             // 
+            numSuperiorThreshold.Font = new Font("Segoe UI", 15.75F);
             numSuperiorThreshold.Increment = new decimal(new int[] { 5, 0, 0, 0 });
-            numSuperiorThreshold.Location = new Point(6, 149);
+            numSuperiorThreshold.Location = new Point(6, 193);
+            numSuperiorThreshold.Margin = new Padding(3, 2, 3, 2);
             numSuperiorThreshold.Minimum = new decimal(new int[] { 75, 0, 0, 0 });
             numSuperiorThreshold.Name = "numSuperiorThreshold";
-            numSuperiorThreshold.Size = new Size(125, 27);
+            numSuperiorThreshold.Size = new Size(200, 35);
             numSuperiorThreshold.TabIndex = 8;
             numSuperiorThreshold.Value = new decimal(new int[] { 85, 0, 0, 0 });
             // 
             // lblSuperiorThreshold
             // 
             lblSuperiorThreshold.AutoSize = true;
-            lblSuperiorThreshold.Location = new Point(6, 126);
+            lblSuperiorThreshold.Font = new Font("Segoe UI", 15.75F);
+            lblSuperiorThreshold.Location = new Point(6, 161);
             lblSuperiorThreshold.Name = "lblSuperiorThreshold";
-            lblSuperiorThreshold.Size = new Size(108, 20);
+            lblSuperiorThreshold.Size = new Size(150, 30);
             lblSuperiorThreshold.TabIndex = 7;
             lblSuperiorThreshold.Text = "Limite superior";
             // 
             // ckbDemo
             // 
             ckbDemo.AutoSize = true;
-            ckbDemo.Location = new Point(11, 271);
+            ckbDemo.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            ckbDemo.Location = new Point(6, 362);
+            ckbDemo.Margin = new Padding(3, 2, 3, 2);
             ckbDemo.Name = "ckbDemo";
-            ckbDemo.Size = new Size(18, 17);
+            ckbDemo.Size = new Size(15, 14);
             ckbDemo.TabIndex = 6;
             ckbDemo.UseVisualStyleBackColor = true;
             // 
             // lblDemo
             // 
             lblDemo.AutoSize = true;
-            lblDemo.Location = new Point(6, 248);
+            lblDemo.Font = new Font("Segoe UI", 15.75F);
+            lblDemo.Location = new Point(3, 330);
             lblDemo.Name = "lblDemo";
-            lblDemo.Size = new Size(50, 20);
+            lblDemo.Size = new Size(69, 30);
             lblDemo.TabIndex = 5;
             lblDemo.Text = "Demo";
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(6, 308);
+            btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSave.Font = new Font("Segoe UI", 15.75F);
+            btnSave.Location = new Point(6, 588);
+            btnSave.Margin = new Padding(3, 2, 3, 2);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(125, 29);
+            btnSave.Size = new Size(200, 45);
             btnSave.TabIndex = 4;
             btnSave.Text = "Salvar";
             btnSave.UseVisualStyleBackColor = true;
@@ -354,49 +397,57 @@
             // 
             // selNeuralNet
             // 
+            selNeuralNet.Font = new Font("Segoe UI", 15.75F);
             selNeuralNet.FormattingEnabled = true;
             selNeuralNet.Items.AddRange(new object[] { "Yolo", "Custom Vision" });
-            selNeuralNet.Location = new Point(6, 87);
+            selNeuralNet.Location = new Point(6, 112);
+            selNeuralNet.Margin = new Padding(3, 2, 3, 2);
             selNeuralNet.Name = "selNeuralNet";
-            selNeuralNet.Size = new Size(125, 28);
+            selNeuralNet.Size = new Size(200, 38);
             selNeuralNet.TabIndex = 3;
             // 
             // lblNeuralNet
             // 
             lblNeuralNet.AutoSize = true;
-            lblNeuralNet.Location = new Point(6, 64);
+            lblNeuralNet.Font = new Font("Segoe UI", 15.75F);
+            lblNeuralNet.Location = new Point(6, 80);
             lblNeuralNet.Name = "lblNeuralNet";
-            lblNeuralNet.Size = new Size(88, 20);
+            lblNeuralNet.Size = new Size(123, 30);
             lblNeuralNet.TabIndex = 2;
             lblNeuralNet.Text = "Rede neural";
             // 
             // numInterval
             // 
-            numInterval.Location = new Point(6, 26);
+            numInterval.Font = new Font("Segoe UI", 15.75F);
+            numInterval.Location = new Point(6, 34);
+            numInterval.Margin = new Padding(3, 2, 3, 2);
             numInterval.Maximum = new decimal(new int[] { 30, 0, 0, 0 });
             numInterval.Name = "numInterval";
-            numInterval.Size = new Size(125, 27);
+            numInterval.Size = new Size(200, 35);
             numInterval.TabIndex = 1;
             numInterval.Value = new decimal(new int[] { 5, 0, 0, 0 });
             // 
             // lblInterval
             // 
             lblInterval.AutoSize = true;
-            lblInterval.Location = new Point(6, 3);
+            lblInterval.Font = new Font("Segoe UI", 15.75F);
+            lblInterval.Location = new Point(6, 2);
             lblInterval.Name = "lblInterval";
-            lblInterval.Size = new Size(67, 20);
+            lblInterval.Size = new Size(94, 30);
             lblInterval.TabIndex = 0;
             lblInterval.Text = "Intervalo";
             // 
             // SurgeryWindow
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(782, 453);
+            ClientSize = new Size(1167, 695);
             Controls.Add(tab);
-            MinimumSize = new Size(800, 500);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(3, 2, 3, 2);
+            MinimumSize = new Size(702, 385);
             Name = "SurgeryWindow";
-            Text = "Form1";
+            Text = "Survision";
             Load += SurgeryWindow_Load;
             tab.ResumeLayout(false);
             tabRecord.ResumeLayout(false);

@@ -73,7 +73,7 @@ namespace UserInterface
                 DisplayValidationMessage(Constantes.InvalidRoomMessage);
                 return;
             }
-            
+
             StartRecording();
         }
 
@@ -151,12 +151,12 @@ namespace UserInterface
         {
             Bitmap bitmap = new Bitmap(image);
 
-            if(Settings.Default.IsDemo)
+            if (Settings.Default.IsDemo)
             {
                 IPredictionResult predictionResult = Supervisor.GetPredictionResult(bitmap);
                 DrawService.DrawDetectedObjects(bitmap, predictionResult, (double)numInferiorThreshold.Value);
             }
-            
+
             imgCapture.Image = bitmap;
         }
 
@@ -285,7 +285,7 @@ namespace UserInterface
                     string summary = Librarian.SummarizeSurgeryResult(surgeryResult);
 
                     saveFileDialog1.Filter = "Text files (*.txt)|*.txt";
-                    saveFileDialog1.FileName = Path.GetFileName(results.FullName);
+                    saveFileDialog1.FileName = $"{Path.GetFileNameWithoutExtension(results.FullName)}.txt";
                     if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                     {
                         using (Stream output = saveFileDialog1.OpenFile())
