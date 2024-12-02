@@ -233,6 +233,11 @@ namespace UserInterface
             }
 
             lisView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            if(lisView.Items.Count > 0)
+            {
+                lisView.Items[0].Selected = true;
+                lisView.Items[0].Focused = true;
+            }
         }
 
         private void btnExportSurgeryDesc_Click(object sender, EventArgs e)

@@ -210,13 +210,25 @@ namespace FileManagementService.Services
             IDictionary<string, int> delta = CalculateDelta(firstGrouping, lastGrouping);
             foreach ((string name, int count) in delta)
             {
-                if (count < 0)
+                if (count < -1)
                 {
-                    summary.AppendLine($"{count} {name} removidos da bandeja.");
+                    summary.AppendLine($"({Math.Abs(count)}) {name} removidos da bandeja.");
+                }
+                else if (count == -1)
+                {
+                    summary.AppendLine($"({Math.Abs(count)}) {name} removido da bandeja.");
+                }
+                else if (count == 0)
+                {
+                    summary.AppendLine($"(-) {name} manteve a mesma quantidade");
+                }
+                else if (count == 1)
+                {
+                    summary.AppendLine($"({count}) {name} adicionado na bandeja.");
                 }
                 else
                 {
-                    summary.AppendLine($"{count} {name} adicionados na bandeja.");
+                    summary.AppendLine($"({count}) {name} adicionados na bandeja.");
                 }
             }
 
