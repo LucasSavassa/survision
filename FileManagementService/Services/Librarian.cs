@@ -17,8 +17,8 @@ namespace FileManagementService.Services
                 Supervisor.GalleryPath,
                 $"{room}",
                 $"{year}",
-                $"{month:D2}",
-                $"{day:D2}",
+                $"{month}",
+                $"{day}",
                 $"surgery-{room}-{year}{month:D2}{day:D2}{hour:D2}{minute:D2}{second:D2}.zip");
 
             string content = string.Empty;
@@ -52,8 +52,8 @@ namespace FileManagementService.Services
                 Supervisor.GalleryPath,
                 $"{room}",
                 $"{year}",
-                $"{month:D2}",
-                $"{day:D2}");
+                $"{month}",
+                $"{day}");
 
             return Directory.GetFiles(path);
         }
