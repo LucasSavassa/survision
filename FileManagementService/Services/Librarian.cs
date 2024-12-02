@@ -127,6 +127,15 @@ namespace FileManagementService.Services
             return destination;
         }
 
+        public static string GetPictureName(uint seconds)
+        {
+            uint hours = seconds / 3600;
+            uint minutes = (seconds % 3600) / 60;
+            uint remainingSeconds = seconds % 60;
+
+            return $"{hours:D2}-{minutes:D2}-{remainingSeconds:D2}.jpg";
+        }
+
         public static IDictionary<string, int> GetSurgeryUsage(SurgeryResult surgeryResult)
         {
             PictureResult firstPicture = surgeryResult.Timeline.First();

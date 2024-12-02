@@ -80,6 +80,10 @@ namespace FileManagementService
                 if (element.Hash == lastHash)
                 {
                     surgeryResult.Timeline.Remove(element);
+                    string pictureName = Librarian.GetPictureName(element.Second);
+                    string picturePath = Path.Combine(entry, pictureName);
+                    File.Delete(picturePath);
+                    _logger.LogInformation(message: $"Timmed picture: {picturePath}");
                 }
                 else
                 {
